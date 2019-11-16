@@ -3,7 +3,7 @@
 # 1.Paper Study
 
 
-## 1.1.Consistent Comic Colorization with Pixel-wise Background Classification([https://nips2017creativity.github.io/doc/Consistent_Comic_Colorization.pdf])
+## 1.1.[Consistent Comic Colorization with Pixel-wise Background Classification](https://nips2017creativity.github.io/doc/Consistent_Comic_Colorization.pdf)
 
 
 
@@ -66,6 +66,14 @@ Ground Truth를 그대로 쓰면 그냥 이미지 전체를 후경으로 취급�
 
 
 
+**2019-11-16**
+
+
+
+현재 크롤러와 전처리기 모듈 
+
+
+
 #### 1.1.2.2.Low-resolution Colorizer
  기본적인 구조는 Pixcolor: Pixel recursive colorization([https://arxiv.org/abs/1705.07208])의 것을 따르고 있으며, 전이학습을 하지 않는 점, 적은 Dataset에 대해 더 나은 성능을 얻기위해 Logistic Mixture Model([https://arxiv.org/abs/1701.05517])을 사용했다는 점이 차이점이다. Canny-edge와 원래 검게 칠해진 부분을 더해 얻은 Outline을 Input으로 하고 Ground-truth를 32x32까지 Downsample한 영상을 Output으로 하는 전형적인 Pix2PixCNN으로 보인다.
 
@@ -94,7 +102,11 @@ Ground Truth를 그대로 쓰면 그냥 이미지 전체를 후경으로 취급�
 5. Low-resolution Image의 후경 픽셀들의 값의 평균(3 channel)
 
 
-총 10 channel의 Image를 Input으로 받아 Background-consistent하게 Resolution을 복구한다. 모델이 Low-resolution Image에 과의존하는 것을 막기위해 Low-resolution Image에서 후경으로 분류된 부분 중 일부를 Random하게 Mask하는데 이때 Masking하는 값은 앞서 숱하게 사용한 후경 픽셀들의 값의 평균이다.
+총 10 channel의 Image를 Input으로 받아 Background-consistent하게 Resolution을 복구한다. 모델이 Low-resolution Image에 과의존하는 것을 막기위해 Low-resolution Image에서 후경으로 분류된 부분 중 일부를 Random하게 Mask하는데 이때 Masking하는 값은 앞서 숱하게 사용한 후경 픽셀들의 값의 평균이다. 
 
 
-4번 Mask가 이때 사용한 Mask의 Index를 의미하는 것 같고, 5번은 마스크의 Value를 의미하는 것 같은데, 다소 모호하게 논문에 적혀있었으므로 저자에게 직접 질문메일을 보냈다. 이를 반영해 본문서도 수정해 나갈 예정이다.
+
+Low-resolution Image의 후경 픽셀들의 값의 평균(3 channel)은 Background로 분류된 픽셀들에만 Masking한 형태로 사용한다.
+
+
+4번 Mask가 Random Noise 줄 때 사용한 Noise의 마스크인건지... 다소 모호하게 논문에 적혀있었으므로 저자에게 직접 질문메일을 보냈다. 이를 반영해 본문서를 수정해 나갈 예정이다.
