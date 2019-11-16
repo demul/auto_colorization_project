@@ -70,7 +70,7 @@ Ground Truth를 그대로 쓰면 그냥 이미지 전체를 후경으로 취급�
 
 
 
-현재 크롤러와 전처리기 모듈 
+현재 크롤러와 전처리기 모듈 추가완료
 
 
 
@@ -99,14 +99,19 @@ Ground Truth를 그대로 쓰면 그냥 이미지 전체를 후경으로 취급�
 
 4. Mask(1 channel)
 
+
 5. Low-resolution Image의 후경 픽셀들의 값의 평균(3 channel)
 
 
-총 10 channel의 Image를 Input으로 받아 Background-consistent하게 Resolution을 복구한다. 모델이 Low-resolution Image에 과의존하는 것을 막기위해 Low-resolution Image에서 후경으로 분류된 부분 중 일부를 Random하게 Mask하는데 이때 Masking하는 값은 앞서 숱하게 사용한 후경 픽셀들의 값의 평균이다. 
+총 10 channel의 Image를 Input으로 받아 Background-consistent하게 Resolution을 복구한다. 
 
 
 
-Low-resolution Image의 후경 픽셀들의 값의 평균(3 channel)은 Background로 분류된 픽셀들에만 Masking한 형태로 사용한다.
-
+모델이 1번 Low-resolution Image에 과의존하는 것을 막기위해 Low-resolution Image에서 후경으로 분류된 부분 중 일부를 Random하게 Mask하는데 이때 Masking하는 값은 앞서 숱하게 사용한 후경 픽셀들의 값의 평균이다. 
 
 4번 Mask가 Random Noise 줄 때 사용한 Noise의 마스크인건지... 다소 모호하게 논문에 적혀있었으므로 저자에게 직접 질문메일을 보냈다. 이를 반영해 본문서를 수정해 나갈 예정이다.
+
+
+5번 Low-resolution Image의 후경 픽셀들의 값의 평균(3 channel)은 Background로 분류된 픽셀들에만 Masking한 형태로 사용한다.
+
+
