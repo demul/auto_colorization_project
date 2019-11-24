@@ -1,6 +1,7 @@
 import cv2
 import os
 import numpy as np
+import train.train_LRC
 
 class Preprossesor :
     def __init__(self, comic_name):
@@ -42,5 +43,8 @@ class Preprossesor :
             cv2.imwrite(edged_path, outline)
 
 
-P = Preprossesor('yumi_cell')
-P.preprocess_save()
+
+# P = Preprossesor('yumi_cell')
+# P.preprocess_save()
+data_maker = train.train_LRC.CGAN(20) #반드시 LRC가 학습된 뒤에 실행
+data_maker.make_data_for_BD(2,2)
