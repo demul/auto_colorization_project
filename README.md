@@ -64,7 +64,10 @@ Ground Truth를 그대로 쓰면 그냥 이미지 전체를 후경으로 취급�
 
 ### 1.1.2.Detail
 #### 1.1.2.1.Dataset
-유미의 세포들이라는 만화의 첫 화부터 238화까지, 총 7394개 이미지를 256x256으로 resize해서 사용했다고 한다. 데이터를 대충 훑어보니 대부분이 컷 분할이 깔끔하고 종횡비의 차가 크지 않은 컷이라 데이터셋으로 쓰기 좋아보였다. 생각보다 데이터가 깔끔해서 아마 전처리보다는 크롤러 만들어서 긁어오는데 더 많은 시간을 소요할 것으로 보인다.
+유미의 세포들이라는 만화의 첫 화부터 238화까지, 총 7394개 이미지를 256x256으로 resize해서 사용했다고 한다. 데이터를 대충 훑어보니 대부분이 컷 분할이 깔끔하고 종횡비의 차가 크지 않은 컷이라 데이터셋으로 쓰기 좋아보였다. 생각보다 데이터가 깔끔해서 아마 전처리보다는 크롤러 만들어서 긁어오는데 더 많은 시간을 소요할 것으로 보인다.(**라고 생각했던 것은 내 큰 착각이었다.**)
+
+
+
 
 
 
@@ -76,8 +79,14 @@ Ground Truth를 그대로 쓰면 그냥 이미지 전체를 후경으로 취급�
 
 
 
+
+
+
 #### 1.1.2.2.Low-resolution Colorizer
  기본적인 구조는 Pixcolor: Pixel recursive colorization([https://arxiv.org/abs/1705.07208])의 것을 따르고 있으며, 전이학습을 하지 않는 점, 적은 Dataset에 대해 더 나은 성능을 얻기위해 Logistic Mixture Model([https://arxiv.org/abs/1701.05517])을 사용했다는 점이 차이점이다. Canny-edge와 원래 검게 칠해진 부분을 더해 얻은 Outline을 Input으로 하고 Ground-truth를 32x32까지 Downsample한 영상을 Output으로 하는 전형적인 Pix2PixCNN으로 보인다.
+
+
+
 
 
 
@@ -119,6 +128,9 @@ Pixcolor: Pixel recursive colorization을 이해하기 위해선 영상 도메�
 
 #### 1.1.2.3.Background Detector
 기본적인 구조는 Image-to-Image Translation with Conditional Adversarial Networks([https://arxiv.org/abs/1611.07004])의 것을 따르고 있으며, 최종단의 Binary한 Output을 Gumbel-Softmax로 얻는다.(https://arxiv.org/abs/1611.01144) 이후 위에 언급했듯, 전경으로 분류된 부분엔 Low-resolution Colorizer의 값을 곱하고, 후경으로 분류된 부분엔 같은 Index를 가진 Ground-truth 값들의 평균을 곱한다. 이 둘을 합해 얻은 이미지와 Ground-truth간의 L1 Loss를 Minimize하게 학습시킨다. 
+
+
+
 
 
 
@@ -175,6 +187,9 @@ Pixcolor: Pixel recursive colorization을 이해하기 위해선 영상 도메�
 
 
 5번 Low-resolution Image의 후경 픽셀들의 값의 평균(3 channel)은 Background로 분류된 픽셀들에만 Masking한 형태로 사용한다.
+
+
+
 
 
 
