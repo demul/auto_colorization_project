@@ -196,4 +196,4 @@ Pixcolor: Pixel recursive colorization을 이해하기 위해선 영상 도메�
 
 
 
-3번, 5번을 생략하고 1, 2, 4번만으로 예측하는 모델을 짜려고 한다. Pix2Pix의 구조를 그대로 따왔고, 디테일한 특징을 살리기위해 Adverderial Loss도 써봐야겠다,
+3번, 5번을 생략하고 1, 2, 4번만으로 예측하는 모델을 짜도록 한다. Pix2Pix의 구조를 그대로 따왔고, 디테일한 특징을 살리기위해 Adverderial Loss도 사용하여 구현하였다.
