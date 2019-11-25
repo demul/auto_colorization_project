@@ -148,6 +148,7 @@ class CGAN_PN:
     def train(self, train_epoch, model_save_freq, gpu_num, split_num):
         #load image loader
         img_loader = data_loader.Loader()
+        img_loader_test = data_loader.Loader(is_test=True)
 
         #####Make placeholder
         ### edge
@@ -205,16 +206,20 @@ class CGAN_PN:
                                     feed_dict={EDGE: edge_batch, GT: GT_batch, LRC: LRC_batch, keep_prob: 0.3, is_training: True})
                 G_losses.append(loss_G)
 
-            LRC_batch = img_loader.next_LRC(self.input_size, test=True)
-            edge_batch, GT_batch = img_loader.next(self.input_size, test=True)
+
             ###Print Process
             epoch_end_time = time.time()
             time_per_epoch = epoch_end_time - epoch_start_time
             print('[%d/%d] - ptime: %.2f loss_d: %.3f, loss_g: %.3f'
                   % ((epoch + 1), train_epoch, time_per_epoch, np.mean(D_losses), np.mean(G_losses)))
 
+            img_loader_test.cursor = 0
+            LRC_batch = img_loader_test.next_LRC(self.input_size)
+            edge_batch, GT_batch = img_loader_test.next(self.input_size)
+
             ##### 생성된 샘플이미지를 저장
-            images_generated = sess.run(Generated_img, feed_dict={EDGE: edge_batch, GT: GT_batch, LRC: LRC_batch, keep_prob: 1.0, is_training: False})
+            images_generated = sess.run(Generated_img, feed_dict={EDGE: edge_batch, GT: GT_batch, LRC: LRC_batch,
+                                                                  keep_prob: 1.0, is_training: False})
 
             images_result_path = os.path.join(self.root, 'Fixed_noise_results', 'epoch%4d.png'%(epoch + 1))
             self.show_result(images_generated, GT_batch, (epoch + 1), save=True, path=images_result_path)
@@ -243,100 +248,104 @@ class CGAN_PN:
         sess.close()
         print('Finished!')
 
-
-    def inference(self, gpu_num, split_num):
-        # load image loader
-        img_loader = data_loader.Loader()
-
-        #####Make placeholder
-        ### edge
-        EDGE = tf.placeholder(tf.float32, [None, 256, 256, 1])
-        ### GT
-        GT = tf.placeholder(tf.float32, [None, 256, 256, 3])
-        ### LRC
-        LRC = tf.placeholder(tf.float32, [None, 256, 256, 3])
-        ### Keep_prob
-        keep_prob = tf.placeholder(tf.float32)
-        ### Is training
-        is_training = tf.placeholder(tf.bool)
-
-        ##### Make Graph
-        train_op_d, train_op_g, loss_d, loss_g, Generated_img = self.make_train_graph(EDGE, GT, LRC,
-                                                                                      is_training=is_training,
-                                                                                      keep_prob=keep_prob,
-                                                                                      gpu_num=gpu_num,
-                                                                                      split_num=split_num)
-        ##### Run Session
-        sess = tf.Session()
-
-        ##### Check the Checkpoint
-        saver = tf.train.Saver(tf.global_variables())
-        ckpt = tf.train.get_checkpoint_state(os.path.join('./ckpt', 'ckpt_PN'))
-        if ckpt and tf.train.checkpoint_exists(ckpt.model_checkpoint_path):
-            saver.restore(sess, ckpt.model_checkpoint_path)
-        else:
-            sess.run(tf.global_variables_initializer())
-
-        for iter in range(300 // self.input_size):
-            edge_batch, GT_batch = img_loader.next(self.input_size, test=True)
-            ##### 생성된 샘플이미지를 저장
-            images_generated = sess.run(Generated_img,
-                                        feed_dict={EDGE: edge_batch, GT: GT_batch, keep_prob: 0.5, is_training: False})
-
-            images_result_path = os.path.join(self.root, 'Fixed_noise_results', 'inference%4d.png' % (iter + 1))
-            self.show_result(images_generated, GT_batch, (iter + 1), save=True, path=images_result_path)
-
-        print("Inference finish!... save inference results")
-
-        sess.close()
-        print('Finished!')
-
-
-    def inference(self, gpu_num, split_num):
-        #load image loader
-        img_loader = data_loader.Loader()
-
-        #####Make placeholder
-        ### edge
-        EDGE = tf.placeholder(tf.float32, [None, 256, 256, 1])
-        ### GT
-        GT = tf.placeholder(tf.float32, [None, 256, 256, 3])
-        ### Keep_prob
-        keep_prob = tf.placeholder(tf.float32)
-        ### Is training
-        is_training = tf.placeholder(tf.bool)
-
-        ##### Make Graph
-        train_op_d, train_op_g, loss_d, loss_g, Generated_img = self.make_train_graph(EDGE, GT,
-                                                                                      is_training=is_training, keep_prob = keep_prob,
-                                                                                      gpu_num=gpu_num, split_num=split_num)
-        ##### Run Session
-        sess = tf.Session()
-
-        ##### Check the Checkpoint
-        saver = tf.train.Saver(tf.global_variables())
-        ckpt = tf.train.get_checkpoint_state(os.path.join('./ckpt', 'ckpt_PN'))
-        if ckpt and tf.train.checkpoint_exists(ckpt.model_checkpoint_path):
-            saver.restore(sess, ckpt.model_checkpoint_path)
-        else:
-            sess.run(tf.global_variables_initializer())
-
-        images_result_dir = os.path.join('yumi_cell', 'PC')
-        if not os.path.isdir(images_result_dir):
-            os.mkdir(images_result_dir)
-
-        img_loader.train_idx = range(7380)  # 순서대로 불러오도록
-        for iter in range(7380 // self.input_size):
-            edge_batch, GT_batch = img_loader.next(self.input_size)
-
-            ##### 생성된 샘플이미지를 "모두" resize해서 저장
-            images_generated = sess.run(Generated_img, feed_dict={EDGE: edge_batch, GT: GT_batch, keep_prob: 0.5, is_training: False})
-            for i in range(self.input_size) :
-                images_result_path = os.path.join(images_result_dir, '%4d.png' % (self.input_size * iter + i))
-                resized_img = cv2.resize(images_generated[i], (256, 256))
-                cv2.imwrite(images_result_path, resized_img)
-
-        print("Low Resolution Colorizing finish!... save PN results")
-
-        sess.close()
-        print('Finished!')
+    #
+    # def inference(self, gpu_num, split_num):
+    #     # load image loader
+    #     img_loader = data_loader.Loader(is_test=True)
+    #
+    #     #####Make placeholder
+    #     ### edge
+    #     EDGE = tf.placeholder(tf.float32, [None, 256, 256, 1])
+    #     ### GT
+    #     GT = tf.placeholder(tf.float32, [None, 256, 256, 3])
+    #     ### LRC
+    #     LRC = tf.placeholder(tf.float32, [None, 256, 256, 3])
+    #     ### Keep_prob
+    #     keep_prob = tf.placeholder(tf.float32)
+    #     ### Is training
+    #     is_training = tf.placeholder(tf.bool)
+    #
+    #     ##### Make Graph
+    #     train_op_d, train_op_g, loss_d, loss_g, Generated_img = self.make_train_graph(EDGE, GT, LRC,
+    #                                                                                   is_training=is_training,
+    #                                                                                   keep_prob=keep_prob,
+    #                                                                                   gpu_num=gpu_num,
+    #                                                                                   split_num=split_num)
+    #     ##### Run Session
+    #     sess = tf.Session()
+    #
+    #     ##### Check the Checkpoint
+    #     saver = tf.train.Saver(tf.global_variables())
+    #     ckpt = tf.train.get_checkpoint_state(os.path.join('./ckpt', 'ckpt_PN'))
+    #     if ckpt and tf.train.checkpoint_exists(ckpt.model_checkpoint_path):
+    #         saver.restore(sess, ckpt.model_checkpoint_path)
+    #     else:
+    #         sess.run(tf.global_variables_initializer())
+    #
+    #     for iter in range(300 // self.input_size):
+    #         LRC_batch = img_loader.next_LRC(self.input_size)
+    #         edge_batch, GT_batch = img_loader.next(self.input_size)
+    #         ##### 생성된 샘플이미지를 저장
+    #         images_generated = sess.run(Generated_img,
+    #                                     feed_dict={EDGE: edge_batch, GT: GT_batch, LRC: LRC_batch, keep_prob: 1.0, is_training: False})
+    #
+    #         images_result_path = os.path.join(self.root, 'Fixed_noise_results', 'inference%4d.png' % (iter + 1))
+    #         self.show_result(images_generated, GT_batch, (iter + 1), save=True, path=images_result_path)
+    #
+    #     print("Inference finish!... save inference results")
+    #
+    #     sess.close()
+    #     print('Finished!')
+    #
+    #
+    # def inference2(self, gpu_num, split_num):
+    #     #load image loader
+    #     img_loader = data_loader.Loader(is_test=True)
+    #
+    #     #####Make placeholder
+    #     ### edge
+    #     EDGE = tf.placeholder(tf.float32, [None, 256, 256, 1])
+    #     ### GT
+    #     GT = tf.placeholder(tf.float32, [None, 256, 256, 3])
+    #     ##LRC
+    #     LRC = tf.placeholder(tf.float32, [None, 256, 256, 3])
+    #     ### Keep_prob
+    #     keep_prob = tf.placeholder(tf.float32)
+    #     ### Is training
+    #     is_training = tf.placeholder(tf.bool)
+    #
+    #     ##### Make Graph
+    #     train_op_d, train_op_g, loss_d, loss_g, Generated_img = self.make_train_graph(EDGE, GT, LRC,
+    #                                                                                   is_training=is_training, keep_prob = keep_prob,
+    #                                                                                   gpu_num=gpu_num, split_num=split_num)
+    #     ##### Run Session
+    #     sess = tf.Session()
+    #
+    #     ##### Check the Checkpoint
+    #     saver = tf.train.Saver(tf.global_variables())
+    #     ckpt = tf.train.get_checkpoint_state(os.path.join('./ckpt', 'ckpt_PN'))
+    #     if ckpt and tf.train.checkpoint_exists(ckpt.model_checkpoint_path):
+    #         saver.restore(sess, ckpt.model_checkpoint_path)
+    #     else:
+    #         sess.run(tf.global_variables_initializer())
+    #
+    #     images_result_dir = os.path.join('yumi_cell', 'PN')
+    #     if not os.path.isdir(images_result_dir):
+    #         os.mkdir(images_result_dir)
+    #
+    #     img_loader.idx = range(7380)  # 순서대로 불러오도록
+    #     for iter in range(7380 // self.input_size):
+    #         LRC_batch = img_loader.next_LRC(self.input_size)
+    #         edge_batch, GT_batch = img_loader.next(self.input_size)
+    #
+    #         ##### 생성된 샘플이미지를 "모두" resize해서 저장
+    #         images_generated = sess.run(Generated_img, feed_dict={EDGE: edge_batch, GT: GT_batch, LRC: LRC_batch, keep_prob: 0.5, is_training: False})
+    #         for i in range(self.input_size) :
+    #             images_result_path = os.path.join(images_result_dir, '%4d.png' % (self.input_size * iter + i))
+    #             resized_img = cv2.resize(images_generated[i], (256, 256))
+    #             cv2.imwrite(images_result_path, resized_img)
+    #
+    #     print("Low Resolution Colorizing finish!... save PN results")
+    #
+    #     sess.close()
+    #     print('Finished!')

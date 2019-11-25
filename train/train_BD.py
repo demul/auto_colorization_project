@@ -112,6 +112,7 @@ class BD:
     def train(self, train_epoch, model_save_freq, gpu_num, split_num):
         #load image loader
         img_loader = data_loader.Loader()
+        img_loader_test = data_loader.Loader(is_test=True)
 
         #####Make placeholder
         ### edge
@@ -163,11 +164,16 @@ class BD:
                                       feed_dict={EDGE: edge_batch, GT: GT_batch, LRC: LRC_batch, keep_prob: 0.5, is_training: True})
                 L1_losses.append(loss_L1_val)
 
+
             ###Print Process
             epoch_end_time = time.time()
             time_per_epoch = epoch_end_time - epoch_start_time
             print('[%d/%d] - ptime: %.2f loss_L1: %.3f'
                   % ((epoch + 1), train_epoch, time_per_epoch, np.mean(L1_losses)))
+
+            img_loader_test.cursor = 0
+            LRC_batch = img_loader_test.next_LRC(self.input_size)
+            edge_batch, GT_batch = img_loader_test.next(self.input_size)
 
             ##### 생성된 샘플이미지를 저장
             images_generated = sess.run(Generated_img,

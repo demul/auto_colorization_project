@@ -149,6 +149,7 @@ class CGAN:
     def train(self, train_epoch, model_save_freq, gpu_num, split_num):
         #load image loader
         img_loader = data_loader.Loader()
+        img_loader_test = data_loader.Loader(is_test=True)
 
         #####Make placeholder
         ### edge
@@ -203,7 +204,8 @@ class CGAN:
                     _, loss_G = sess.run([train_op_g, loss_g],
                                           feed_dict={EDGE: edge_batch, GT: GT_batch, keep_prob: 0.5, is_training: True})
                 G_losses.append(loss_G)
-            edge_batch, GT_batch = img_loader.next(self.input_size, test=True)
+            img_loader_test.cursor = 0
+            edge_batch, GT_batch = img_loader_test.next(self.input_size)
             ###Print Process
             epoch_end_time = time.time()
             time_per_epoch = epoch_end_time - epoch_start_time
@@ -243,7 +245,7 @@ class CGAN:
 
     def inference(self, gpu_num, split_num):
         # load image loader
-        img_loader = data_loader.Loader()
+        img_loader = data_loader.Loader(is_test=True)
 
         #####Make placeholder
         ### edge
@@ -273,7 +275,7 @@ class CGAN:
             sess.run(tf.global_variables_initializer())
 
         for iter in range(300 // self.input_size):
-            edge_batch, GT_batch = img_loader.next(self.input_size, test=True)
+            edge_batch, GT_batch = img_loader.next(self.input_size)
             ##### 생성된 샘플이미지를 저장
             images_generated = sess.run(Generated_img,
                                         feed_dict={EDGE: edge_batch, GT: GT_batch, keep_prob: 0.5, is_training: False})
@@ -320,7 +322,7 @@ class CGAN:
         if not os.path.isdir(images_result_dir):
             os.mkdir(images_result_dir)
 
-        img_loader.train_idx = range(7380)  # 순서대로 불러오도록
+        img_loader.idx = range(7380)  # 순서대로 불러오도록
         for iter in range(7380 // self.input_size):
             edge_batch, GT_batch = img_loader.next(self.input_size)
 

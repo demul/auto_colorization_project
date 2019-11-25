@@ -14,4 +14,4 @@ import train.train_PN
 ###########################################
 # lr=0.0002, beta1=0.5, beta2=0.999, smoothing = 0.0
 PN = train.train_PN.CGAN_PN(40, smoothing_factor=0.2)
-PN.train(15, 1, 2, 2)
+PN.train(20, 1, 2, 2)

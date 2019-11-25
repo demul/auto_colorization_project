@@ -9,14 +9,19 @@ class model:
         # x = Low-Resolution-Image [None, 256, 256, 3]
         # outline [None, 256, 256, 1]
         # drop-out은 regularizer로만 사용. decoding network에 적용
+        # Low-Resolution-Image에 랜덤 마스크 적용 후 마스크도 input으로 넣어줌
+        # Low-Resolution-Image에 과의존하는 것을 막기 위함
 
-
-        x = tf.concat([x, outline], axis=3)  # [None, 256, 256, 5]
+        noise_mask = tf.random_normal([self.input_size, 256, 256, 1], mean=0, stddev=1.0)
+        noise_mask = tf.cast((noise_mask > 0), tf.float32)
+        noise_tile = tf.tile(noise_mask, (1, 1, 1, 3))
+        x = tf.multiply(noise_tile, x)
+        x = tf.concat([x, outline, noise_mask], axis=3)  # [None, 256, 256, 5]
 
         with tf.variable_scope('p_generator', reuse=reuse):
 
             ###### 1st conv
-            self.W1 = tf.get_variable("G_conv_w1", shape=[4, 4, 4, 64], dtype=np.float32,
+            self.W1 = tf.get_variable("G_conv_w1", shape=[4, 4, 5, 64], dtype=np.float32,
                                         initializer=tf.random_normal_initializer(0, 0.01))
             self.L1 = tf.nn.conv2d(x, self.W1, strides=[1, 2, 2, 1], padding='SAME') # [None, 128, 128, 64]
             self.L1 = tf.nn.leaky_relu(self.L1)  # default alpha of leaky relu = 0.2

@@ -4,23 +4,23 @@ import os
 import time
 
 class Loader:
-    def __init__(self):
+    def __init__(self, is_test=False):
         np.random.seed(int(time.time()))
 
         ### 뒤 380컷은 테스트용으로 쓰자
         idx = np.arange(0, 7380)
-        self.train_idx = idx[:7380 - 380] # 7000
-        self.test_idx = idx[7380 - 380:] # 380
-
-        np.random.shuffle(self.train_idx)
-        np.random.shuffle(self.test_idx)
+        if (is_test) :
+            self.idx = idx[7380 - 380:]  # 380
+        else :
+            self.idx = idx[:7380 - 380] # 7000
+            np.random.shuffle(self.idx)
 
         self.cursor = 0
 
     def shuffle (self):
-        np.random.shuffle(self.train_idx)
+        np.random.shuffle(self.idx)
 
-    def next(self, batch_size, test=False):
+    def next(self, batch_size):
         edge_batch = np.empty((
             batch_size,
             256,
@@ -35,14 +35,9 @@ class Loader:
             3
         ), dtype=np.float32)
 
-        if test:
-            idx_list = self.test_idx
-        else:
-            idx_list = self.train_idx
-
-        idx_list = idx_list[self.cursor : self.cursor + batch_size]
+        idx_list = self.idx[self.cursor : self.cursor + batch_size]
         self.cursor += batch_size
-        if self.cursor >= 7000 :
+        if self.cursor + batch_size > len(self.idx) :
             self.cursor = 0
 
         for i, idx_num in enumerate(idx_list):
@@ -55,7 +50,7 @@ class Loader:
 
         return edge_batch, GT_batch
 
-    def next_LRC(self, batch_size, test=False):
+    def next_LRC(self, batch_size):
         LRC_batch = np.empty((
             batch_size,
             256,
@@ -63,15 +58,10 @@ class Loader:
             3
         ), dtype=np.float32)
 
-        if test:
-            idx_list = self.test_idx
-        else:
-            idx_list = self.train_idx
-
-        idx_list = idx_list[self.cursor: self.cursor + batch_size]
+        idx_list = self.idx[self.cursor: self.cursor + batch_size]
         #### next "앞"에 붙어서 사용될 것이므로 주석처리
         # self.cursor += batch_size
-        # if self.cursor >= 7000:
+        # if self.cursor + batch_size >= len(self.idx):
         #     self.cursor = 0
         #############################################
         for i, idx_num in enumerate(idx_list):
