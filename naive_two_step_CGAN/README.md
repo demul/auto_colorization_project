@@ -1,12 +1,3 @@
-![img](./img/result.png)
-
-
-
-최종결과물
-
-
-
-
 # 1.Overview
 이 sub-Repository는 두 가지 목적으로 만들어 졌다.
 
