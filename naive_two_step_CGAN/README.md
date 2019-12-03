@@ -1,16 +1,37 @@
-﻿auto_colorization_project
+![img](./img/result.png)
+# 1.Overview
+이 sub-Repository는 두 가지 목적으로 만들어 졌다.
 
-# 1.Paper Study
 
 
-## 1.1.[Consistent Comic Colorization with Pixel-wise Background Classification](https://nips2017creativity.github.io/doc/Consistent_Comic_Colorization.pdf)
+1. [Consistent Comic Colorization with Pixel-wise Background Classification](https://nips2017creativity.github.io/doc/Consistent_Comic_Colorization.pdf)을 구현하려는 시도중, LRC 모듈을 PixcelCNN이 아닌 2단계의 Pix2Pix로 구현하려다가 결과적으로 좋지 못한 성능을 내게 되어, 전체적으로 코드를 갈아엎기로 결정한 뒤, 실험데이터와 코드를 분리하여 보존하기 위한 목적.
+
+
+
+
+2. 자동채색을 구현하려는 과정에서의 최초의 시도와 고민, 공부가 본 README 문서에 담겨있기도 하기에 추후 참고를 위한 목적.
+
+
+이다.
+
+
+
+내 제멋대로인데다 형편없는 구현이 논문 저자에게 너무 미안해서, 인간된 도리로 리파지토리 이름을 논문명과 다르게 설정하였다. 우연히라도 이 sub-Repository에 오게 된 사람은 구현은 절대 참고하지 말고(원문 구현과 다른 요소가 너무 많다.) 논문을 정리해놓은 [부분](# 2.consistent-comic-colorization-with-pixel-wise-background-classification)만 참고하길 바란다. 논문이해는 꽤 잘한 것 같다고 저자가 칭찬도 해줬으니 논문 정리 부분은 믿어도 좋다.
+
+
+
+이 논문에 Refference된 PixelCNN++와 Pixcolor를 어느정도 이해하고 난 뒤엔, 다시 원문의 구현에 충실하게 재구현에 도전해 볼 생각이다.
+
+
+
+# 2.[Consistent Comic Colorization with Pixel-wise Background Classification](https://nips2017creativity.github.io/doc/Consistent_Comic_Colorization.pdf)
 
 
 
 ![img](./img/img1.JPG)
 
 
-### 1.1.1.Idea
+## 2.1.Idea
 이 논문의 주요한 Contribution은 기존에 제안되었던 Auto-colorization기법들이 Background-consistent한 결과물을 내놓지 못하던 문제를 Background Detector를 도입함으로서 해결하였다는 것이다.
 이 논문에 제안된 모델은
 
@@ -61,14 +82,60 @@ Ground Truth를 그대로 쓰면 그냥 이미지 전체를 후경으로 취급�
 
 
 
-### 1.1.2.Detail
-#### 1.1.2.1.Dataset
+## 2.2.Detail
+### 2.2.1.Dataset
 유미의 세포들이라는 만화의 첫 화부터 238화까지, 총 7394개 이미지를 256x256으로 resize해서 사용했다고 한다. 데이터를 대충 훑어보니 대부분이 컷 분할이 깔끔하고 종횡비의 차가 크지 않은 컷이라 데이터셋으로 쓰기 좋아보였다. 생각보다 데이터가 깔끔해서 아마 전처리보다는 크롤러 만들어서 긁어오는데 더 많은 시간을 소요할 것으로 보인다.
 
 
 
 
+### 2.2.2.Low-resolution Colorizer
+ 기본적인 구조는 Pixcolor: Pixel recursive colorization([https://arxiv.org/abs/1705.07208])의 것을 따르고 있으며, 전이학습을 하지 않는 점, 적은 Dataset에 대해 더 나은 성능을 얻기위해 Logistic Mixture Model([https://arxiv.org/abs/1701.05517])을 사용했다는 점이 차이점이다. Canny-edge와 원래 검게 칠해진 부분을 더해 얻은 Outline을 Input으로 하고 Ground-truth를 32x32까지 Downsample한 영상을 Output으로 하는 전형적인 Pix2PixCNN으로 보인다.(**라고 생각했던 것은 내 큰 착각이었다.**)
 
+
+
+
+### 2.2.3.Background Detector
+기본적인 구조는 Image-to-Image Translation with Conditional Adversarial Networks([https://arxiv.org/abs/1611.07004])의 것을 따르고 있으며, 최종단의 Binary한 Output을 Gumbel-Softmax로 얻는다.(https://arxiv.org/abs/1611.01144) 이후 위에 언급했듯, 전경으로 분류된 부분엔 Low-resolution Colorizer의 값을 곱하고, 후경으로 분류된 부분엔 같은 Index를 가진 Ground-truth 값들의 평균을 곱한다. 이 둘을 합해 얻은 이미지와 Ground-truth간의 L1 Loss를 Minimize하게 학습시킨다. 
+
+
+
+
+### 2.2.4.Polishing Network
+기본적인 구조는 Image-to-Image Translation with Conditional Adversarial Networks([https://arxiv.org/abs/1611.07004])의 것을 따르고 있으며, 
+
+
+1. 최초 Input인 Outline(1 channel), 
+
+
+2. Low-resolution Colorizer의 Output인 Low-resolution Image(3 channel),
+
+
+3. Background Detector의 Output인 Background-Foreground Segment(각각 반전하여 하나씩 2 channel)
+
+
+4. Mask(1 channel)
+
+
+5. Low-resolution Image의 후경 픽셀들의 값의 평균(3 channel)
+
+
+총 10 channel의 Image를 Input으로 받아 Background-consistent하게 Resolution을 복구한다. 
+
+
+
+모델이 1번 Low-resolution Image에 과의존하는 것을 막기위해 Low-resolution Image에서 후경으로 분류된 부분 중 일부를 Random하게 Mask하는데 이때 Masking하는 값은 앞서 숱하게 사용한 후경 픽셀들의 값의 평균이다. 
+
+4번 Mask는 Random Noise 줄 때 사용한 Noise의 마스크이다.
+
+
+5번 Low-resolution Image의 후경 픽셀들의 값의 평균(3 channel)은 Background로 분류된 픽셀들에만 Masking한 형태로 사용한다.
+
+
+
+
+# 3.Implementation
+### 3.1.Dataset
 
 **2019-11-16**
 
@@ -79,15 +146,7 @@ Ground Truth를 그대로 쓰면 그냥 이미지 전체를 후경으로 취급�
 
 
 
-
-
-#### 1.1.2.2.Low-resolution Colorizer
- 기본적인 구조는 Pixcolor: Pixel recursive colorization([https://arxiv.org/abs/1705.07208])의 것을 따르고 있으며, 전이학습을 하지 않는 점, 적은 Dataset에 대해 더 나은 성능을 얻기위해 Logistic Mixture Model([https://arxiv.org/abs/1701.05517])을 사용했다는 점이 차이점이다. Canny-edge와 원래 검게 칠해진 부분을 더해 얻은 Outline을 Input으로 하고 Ground-truth를 32x32까지 Downsample한 영상을 Output으로 하는 전형적인 Pix2PixCNN으로 보인다.(**라고 생각했던 것은 내 큰 착각이었다.**)
-
-
-
-
-
+### 3.2.Low-resolution Colorizer
 
 **2019-11-16**
 
@@ -125,13 +184,7 @@ Pixcolor: Pixel recursive colorization을 이해하기 위해선 영상 도메�
 
 
 
-#### 1.1.2.3.Background Detector
-기본적인 구조는 Image-to-Image Translation with Conditional Adversarial Networks([https://arxiv.org/abs/1611.07004])의 것을 따르고 있으며, 최종단의 Binary한 Output을 Gumbel-Softmax로 얻는다.(https://arxiv.org/abs/1611.01144) 이후 위에 언급했듯, 전경으로 분류된 부분엔 Low-resolution Colorizer의 값을 곱하고, 후경으로 분류된 부분엔 같은 Index를 가진 Ground-truth 값들의 평균을 곱한다. 이 둘을 합해 얻은 이미지와 Ground-truth간의 L1 Loss를 Minimize하게 학습시킨다. 
-
-
-
-
-
+### 3.3.Background Detector
 
 **2019-11-16**
 
@@ -157,43 +210,12 @@ Pixcolor: Pixel recursive colorization을 이해하기 위해선 영상 도메�
 
 
 
-#### 1.1.2.4.Polishing Network
-기본적인 구조는 Image-to-Image Translation with Conditional Adversarial Networks([https://arxiv.org/abs/1611.07004])의 것을 따르고 있으며, 
 
-
-1. 최초 Input인 Outline(1 channel), 
-
-
-2. Low-resolution Colorizer의 Output인 Low-resolution Image(3 channel),
-
-
-3. Background Detector의 Output인 Background-Foreground Segment(각각 반전하여 하나씩 2 channel)
-
-
-4. Mask(1 channel)
-
-
-5. Low-resolution Image의 후경 픽셀들의 값의 평균(3 channel)
-
-
-총 10 channel의 Image를 Input으로 받아 Background-consistent하게 Resolution을 복구한다. 
-
-
-
-모델이 1번 Low-resolution Image에 과의존하는 것을 막기위해 Low-resolution Image에서 후경으로 분류된 부분 중 일부를 Random하게 Mask하는데 이때 Masking하는 값은 앞서 숱하게 사용한 후경 픽셀들의 값의 평균이다. 
-
-4번 Mask는 Random Noise 줄 때 사용한 Noise의 마스크이다.
-
-
-5번 Low-resolution Image의 후경 픽셀들의 값의 평균(3 channel)은 Background로 분류된 픽셀들에만 Masking한 형태로 사용한다.
-
-
-
-
-
+### 3.4.Polishing Network
 
 **2019-11-16**
 
 
 
 3번, 5번을 생략하고 1, 2, 4번만으로 예측하는 모델을 짜도록 한다. Pix2Pix의 구조를 그대로 따왔고, 디테일한 특징을 살리기위해 Adverderial Loss도 사용하여 구현하였다.
+
