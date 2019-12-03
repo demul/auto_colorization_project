@@ -1,4 +1,12 @@
 ![img](./img/result.png)
+
+
+
+최종결과물
+
+
+
+
 # 1.Overview
 이 sub-Repository는 두 가지 목적으로 만들어 졌다.
 
@@ -16,11 +24,11 @@
 
 
 
-내 제멋대로인데다 형편없는 구현이 논문 저자에게 너무 미안해서, 인간된 도리로 리파지토리 이름을 논문명과 다르게 설정하였다. 우연히라도 이 sub-Repository에 오게 된 사람은 구현은 절대 참고하지 말고(원문 구현과 다른 요소가 너무 많다.) 논문을 정리해놓은 [부분](# 2.consistent-comic-colorization-with-pixel-wise-background-classification)만 참고하길 바란다. 논문이해는 꽤 잘한 것 같다고 저자가 칭찬도 해줬으니 논문 정리 부분은 믿어도 좋다.
+내 제멋대로인데다 형편없는 구현이 논문 저자에게 너무 미안해서, 인간된 도리로 리파지토리 이름을 논문명과 다르게 설정하였다. 우연히라도 이 sub-Repository에 오게 된 사람은 구현은 절대 참고하지 말고(원문 구현과 다른 요소가 너무 많다.) 논문을 정리해놓은 부분(2.consistent-comic-colorization-with-pixel-wise-background-classification)만 참고하길 바란다. 논문이해는 꽤 잘한 것 같다고 저자가 칭찬도 해줬으니 논문 정리 부분은 믿어도 좋다.
 
 
 
-이 논문에 Refference된 PixelCNN++와 Pixcolor를 어느정도 이해하고 난 뒤엔, 다시 원문의 구현에 충실하게 재구현에 도전해 볼 생각이다.
+이 논문에 Reference된 PixelCNN++와 Pixcolor를 어느정도 이해하고 난 뒤엔, 다시 원문의 구현에 충실하게 재구현에 도전해 볼 생각이다.
 
 
 
@@ -219,3 +227,13 @@ Pixcolor: Pixel recursive colorization을 이해하기 위해선 영상 도메�
 
 3번, 5번을 생략하고 1, 2, 4번만으로 예측하는 모델을 짜도록 한다. Pix2Pix의 구조를 그대로 따왔고, 디테일한 특징을 살리기위해 Adverderial Loss도 사용하여 구현하였다.
 
+
+
+# 4.Result
+
+
+![img](./img/result.png)
+
+
+
+원문의 구현과 달리, Naive하게 2-Step의 Pix2Pix로 구현한 결과 색이 마구 번지고 섞여있어 만족스럽지 않은 결과를 보여준다.
