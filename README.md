@@ -7,7 +7,7 @@
 
 
 
-![img](./img/img1.JPG)
+![img](./naive_two_step_CGAN/img/img1.JPG)
 
 
 ### 1.1.1.Idea
@@ -49,7 +49,7 @@ Ground Truth를 그대로 쓰면 그냥 이미지 전체를 후경으로 취급�
 1. **전경과 후경이 뚜렷히 구분되지 않게 그려지는 화풍을 가진 만화**(예를 들어 흰 후경이 잦은 만화를 학습데이터로 쓴다면 아마 말풍선과 후경을 잘 분리하지 못하게 학습될 것이다.),
 
 
-![img](./img/img2.JPG)
+![img](./naive_two_step_CGAN/img/img2.JPG)
 
 
 2. **배경이 단색이 아닌 복잡한 패턴을 가져 Mean해버리기에 무리가 있는 만화**(애초에 이 모델은 후경이 어느정도 Consistent하다는 가정에서 짜여진 모델이다.)
@@ -82,14 +82,8 @@ Ground Truth를 그대로 쓰면 그냥 이미지 전체를 후경으로 취급�
 
 
 #### 1.1.2.2.Low-resolution Colorizer
- 기본적인 구조는 Pixcolor: Pixel recursive colorization([https://arxiv.org/abs/1705.07208])의 것을 따르고 있으며, 전이학습을 하지 않는 점, 적은 Dataset에 대해 더 나은 성능을 얻기위해 Logistic Mixture Model([https://arxiv.org/abs/1701.05517])을 사용했다는 점이 차이점이다. Canny-edge와 원래 검게 칠해진 부분을 더해 얻은 Outline을 Input으로 하고 Ground-truth를 32x32까지 Downsample한 영상을 Output으로 하는 전형적인 Pix2PixCNN으로 보인다.(**라고 생각했던 것은 내 큰 착각이었다.**)
+ 기본적인 구조는 Pixcolor: Pixel recursive colorization([https://arxiv.org/abs/1705.07208])의 것을 따르고 있으며, 전이학습을 하지 않는 점, 적은 Dataset에 대해 더 나은 성능을 얻기위해 Logistic Mixture Model([https://arxiv.org/abs/1701.05517])을 사용했다는 점이 차이점이다. Canny-edge와 원래 검게 칠해진 부분을 더해 얻은 Outline을 Input으로 하고 Ground-truth를 32x32까지 Downsample한 영상을 Output으로 한다.
 
-
-
-
-
-
-**2019-11-16**
 
 
 
@@ -105,7 +99,7 @@ Pixcolor: Pixel recursive colorization을 이해하기 위해선 영상 도메�
 
 
 
-![img](./img/img3.PNG)
+![img](./naive_two_step_CGAN/img/img3.PNG)
 
 
 
@@ -113,47 +107,16 @@ Pixcolor: Pixel recursive colorization을 이해하기 위해선 영상 도메�
 
 
 
-![img](./img/img4.PNG)
+![img](./naive_two_step_CGAN/img/img4.PNG)
 
 
 
-그래서 성능을 어느정도 내주고 학습속도를 얻은 PixelCNN같은 모델들이 등장하게 된다. 이 모델은 그림과 같이 생긴 Convolutional Filter를 이용해, 여러번 Convolve하여 마치 좌상단 피쳐맵으로부터 나온값이 중앙에 전달되고 이것들이 다시 Sequential하게 우하단으로 전달되는 모양새를 띈다.
-
-
-
-이 논문에 사용된 Auto Regressive 모델은 PixelCNN++라는 모델인데 부끄러운 말이지만, 솔직히 그 구조가 구글논문답게 너무 기괴해서 단기간 내에 구현이 불가능하다는 결론에 이르렀다. 결국 시간이 촉박해 일단 다른 모듈과 같은 CGAN으로 구현하였는데 성능이 괜찮다. 원저자는 세 모델 모두Adverserial Loss를 사용하지 않았다는데 나는 Adverserial Loss를 사용해봤더니 성능이 상당히 괜찮았다. 그런데 Low-resolution Colorizer의 성능이 너무 좋은게 밑에 Background Detector를 학습시키는데 문제를 일으켰다.
+그래서 성능을 어느정도 내주고 학습속도를 얻은 PixelCNN같은 모델들이 등장하게 된다. 이 모델은 그림과 같이 생긴 Convolutional Filter를 이용해, 여러번 Convolve하여 마치 좌상단 피쳐맵으로부터 나온값이 중앙에 전달되고 이것들이 다시 Sequential하게 우하단으로 전달되는 모양새를 띈다. PixelCNN에 대해선 바로 이 논문 다음으로 공부하고 구현해 볼 것이다.
 
 
 
 #### 1.1.2.3.Background Detector
 기본적인 구조는 Image-to-Image Translation with Conditional Adversarial Networks([https://arxiv.org/abs/1611.07004])의 것을 따르고 있으며, 최종단의 Binary한 Output을 Gumbel-Softmax로 얻는다.(https://arxiv.org/abs/1611.01144) 이후 위에 언급했듯, 전경으로 분류된 부분엔 Low-resolution Colorizer의 값을 곱하고, 후경으로 분류된 부분엔 같은 Index를 가진 Ground-truth 값들의 평균을 곱한다. 이 둘을 합해 얻은 이미지와 Ground-truth간의 L1 Loss를 Minimize하게 학습시킨다. 
-
-
-
-
-
-
-**2019-11-16**
-
-
-
-위에서 구현한 CGAN 기반 Low-resolution Colorizer가 너무 잘 Fitting되어서 사실상 Ground Truth와 유사한 값만 뱉는 상황이 왔다.(...) 저자의 의도대로 Background Detector를 학습시키려면, Low-resolution Colorizer가 전경만 잘 예측하고 후경은 잘 예측하지 못해야 한다. 그런데 후경도 너무 잘 예측하니까 학습이 전혀되질 않는다. (그냥 모든 영역을 foreground로 볼려함)
-
-
-
-해결책으로 다음과 같은 시도를 해보았는데,
-
-
-
-1. 좀 더 앞선 Epoch에서 학습된 Low-resolution colorizer를 사용해보았지만 이건 전경도 예측을 잘 못하는 문제가 있었다.
-
-
-
-2. Low-resolution colorizer에 노이즈를 줘봤는데 뭔가 나아진 것 같은 기분이 드는 것도 같은데 솔직히 눈에 띄는 개선이 없었다.
-
-
-
-그렇다고 300장 남짓한 Test set만 가지고 학습을 시키는 건 의미가 없다. 그래서 그냥 아예 역발상으로 BD를 생략하고 바로 Polishing Network로 연결하는 방법을 시도해 보려고 한다. 이게 안되면 그냥 데이터를 더 크롤링해오는 수 밖에 방법이 없다. 다음부터 이런 자기 모델의 잠재적인 약점(후경을 잘 예측하지 못하는 것)을 이용하는 구조를 설계할 때는 학습용 데이터셋을 좀 더 세분화할 필요가 있겠다.
 
 
 
@@ -189,11 +152,8 @@ Pixcolor: Pixel recursive colorization을 이해하기 위해선 영상 도메�
 
 
 
+# 2.Implementation
 
 
 
-**2019-11-16**
-
-
-
-3번, 5번을 생략하고 1, 2, 4번만으로 예측하는 모델을 짜도록 한다. Pix2Pix의 구조를 그대로 따왔고, 디테일한 특징을 살리기위해 Adverderial Loss도 사용하여 구현하였다.
+# 2.1.[Naive 2-step CGAN(2-step Pix2Pix)](https://github.com/demul/auto_colorization_project/tree/master/naive_two_step_CGAN)
