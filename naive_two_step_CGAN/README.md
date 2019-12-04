@@ -116,4 +116,8 @@ BD를 없앤다는 것은 결국 Pix2Pix를 2개 붙여놓은 것과 거의 다�
 
 
 
+좌측부터, Edge(Input), Ground Truth, Generated Image(Output)
+
+
+
 원문의 구현과 달리, Naive하게 2-Step의 Pix2Pix로 구현한 결과 색이 마구 번지고 섞여있어 만족스럽지 않은 결과를 보여준다.
