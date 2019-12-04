@@ -151,3 +151,7 @@ Pixcolor: Pixel recursive colorization을 이해하기 위해선 영상 도메�
 
 
 좌측부터, Edge(Input), Ground Truth, Generated Image(Output)
+
+
+
+상세한 구현과정과 코드는 상단 항목 제목의 [링크](https://github.com/demul/auto_colorization_project/tree/master/naive_two_step_CGAN) 참고
