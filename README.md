@@ -147,3 +147,7 @@ Pixcolor: Pixel recursive colorization을 이해하기 위해선 영상 도메�
 
 
 ![img](./naive_two_step_CGAN/img/result.png)
+
+
+
+좌측부터, Edge(Input), Ground Truth, Generated Image(Output)
