@@ -95,6 +95,9 @@ Pixcolor: Pixel recursive colorization을 이해하기 위해선 영상 도메�
 
 
 
+BD를 없앤다는 것은 결국 Pix2Pix를 2개 붙여놓은 것과 거의 다름이 없기 때문에, 이 구조의 이름을 Naive 2-Step Pix2Pix로 이름 붙였다.
+
+
 
 ## 2.4.Polishing Network
 
