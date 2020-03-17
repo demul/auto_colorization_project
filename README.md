@@ -138,6 +138,33 @@ Pixcolor: Pixel recursive colorization을 이해하기 위해선 영상 도메�
 
 
 
+## 1.2.[Deep Colorization](https://arxiv.org/abs/1605.00075)
+
+### 1.2.1.Summary
+아마 완전 자동채색 분야의 Pioneer Paper로 추정된다. 초기 Neural Net 기반 채색이 어떠했는지 맥락만 살피는 의미에서 간략하게 요약해본다. 
+
+
+
+일단 Neural Net으로 완전히 End-to-End는 아니고, 학습과정에서 Semantic Histogram으로 클러스터링을 한 뒤 각 클러스터별로 해당 Category의 채색에 특화된 Neural Net을 각각 하나씩 학습시키는 방법이다.
+
+
+
+일단 입력으로는 YUV Color Space를 사용한다.(각 채널간의 Correlation이 적다고 함)
+
+
+
+Handmade feature는 각 픽셀별로 추출되고, Low-level, Mid-level, High-level의 Feature를 모두 사용한다. Low-level-feature는 7x7 범위의 이웃한 픽셀, Mid-level-feature는 DAISY, High-level-feature는 FCN의 Output(Semantic Class Label)을 사용한다. 완전 고전 특징들만 쓸줄 알았는데 의외로 Neural Net의 아웃풋을 통째로 High-level-feature로 쓴다.
+
+
+
+High-Level-Feature로부터 Semantic Histogram을 구한 후, K-means 클러스터링을 한다. 이후 각 클러스터마다 해당 클러스터에 특화된 Neural Net을 학습시킨다. 테스트시에는 NN으로 속하는 클러스터를 찾은 뒤 해당 클러스터에 해당하는 Neural Net으로 채색을 진행한다.
+
+
+
+채색 후 각 픽셀별로 Chrominance값을 얻는데, 하늘이나 바다같은 Low-texture Objects가 Noisy하게 채색되는 문제가 있다. [Joint Bilateral Filtering Technique](http://research.microsoft.com/~hoppe/flash.pdf)으로 노이즈를 감소시켜 최종 Chrominance값을 얻는다. 이후 이를 Luminance값(Greyscale Image)과 결합하여 최종 채색결과물을 얻는다.
+
+
+
 # 2.Implementation
 
 
