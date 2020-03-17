@@ -131,7 +131,7 @@ Pixcolor: Pixel recursive colorization을 이해하기 위해선 영상 도메�
 
 모델이 1번 Low-resolution Image에 과의존하는 것을 막기위해 Low-resolution Image에서 후경으로 분류된 부분 중 일부를 Random하게 Mask하는데 이때 Masking하는 값은 앞서 숱하게 사용한 후경 픽셀들의 값의 평균이다. 
 
-4번 Mask는 Random Noise 줄 때 사용한 Noise의 마스크이다.
+4번 Mask는 Random Noise 줄 때 사용한 Noise의 마스크이다.[
 
 
 5번 Low-resolution Image의 후경 픽셀들의 값의 평균(3 channel)은 Background로 분류된 픽셀들에만 Masking한 형태로 사용한다.
@@ -139,6 +139,8 @@ Pixcolor: Pixel recursive colorization을 이해하기 위해선 영상 도메�
 
 
 ## 1.2.[Deep Colorization](https://arxiv.org/abs/1605.00075)
+
+![img](./Imgaes/deep_colorization.png)
 
 ### 1.2.1.Summary
 아마 완전 자동채색 분야의 Pioneer Paper로 추정된다. 초기 Neural Net 기반 채색이 어떠했는지 맥락만 살피는 의미에서 간략하게 요약해본다. 
