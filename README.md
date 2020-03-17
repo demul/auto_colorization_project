@@ -140,7 +140,7 @@ Pixcolor: Pixel recursive colorization을 이해하기 위해선 영상 도메�
 
 ## 1.2.[Deep Colorization](https://arxiv.org/abs/1605.00075)
 
-![img](./Imgaes/deep_colorization.png)
+![img](./Images/deep_colorization.png)
 
 ### 1.2.1.Summary
 아마 완전 자동채색 분야의 Pioneer Paper로 추정된다. 초기 Neural Net 기반 채색이 어떠했는지 맥락만 살피는 의미에서 간략하게 요약해본다. 
