@@ -165,6 +165,81 @@ High-Level-Feature로부터 Semantic Histogram을 구한 후, K-means 클러스�
 
 채색 후 각 픽셀별로 Chrominance값을 얻는데, 하늘이나 바다같은 Low-texture Objects가 Noisy하게 채색되는 문제가 있다. [Joint Bilateral Filtering Technique](http://research.microsoft.com/~hoppe/flash.pdf)으로 노이즈를 감소시켜 최종 Chrominance값을 얻는다. 이후 이를 Luminance값(Greyscale Image)과 결합하여 최종 채색결과물을 얻는다.
 
+## 1.3.[Colorful Image Colorization](https://arxiv.org/pdf/1603.08511.pdf)
+
+
+![img](./colorful_image_colorization/img/1.png)
+
+
+### 1.3.1.Idea
+
+
+
+그동안 자동채색 분야는 위 Deep Colorization에 비해 많은 발전을 거듭해 클래스마다 따로 모델을 하나하나 만들 필요도 없어졌고, Handmade Feature를 쓰는 데에서도 벗어나 Neural Net만으로도 준수한 성능을 내게 되었다. 이때 주로 쓰이는 방식은 Pixelwise하게 Output을 Ground Truth로 Regression 시키는 것이다. 
+
+
+
+다만 Pix2Pix같은 Regression 방식의 문제점은 각각의 Output이 평균(중심)이 다른 정규분포를 따르기 때문에 Multimodal한 분포를 매핑하려 할 경우 모델입장에서 가장 안전한 분포를 매핑하려 하기때문에 결과물들의 채도가 전반적으로 떨어지는 문제가 있었다.
+예를 들자면 풀이나 하늘같은 건 상대적으로 Singlemodal하다. 각각 초록색, 하늘색으로 채색하면 되기 때문이다. 그런데 사과같은건 빨간색으로 칠할지 초록색으로 칠할지가 애매하다. 이런 경우 양쪽의 L2 Loss를 최소화하려면 빨강과 초록 중간쯤의 채도가 떨어지는 색이 모델입장에서 가장 안전한 채색이 된다.
+
+
+
+이러한 문제점을 해결하기 위해 이 논문의 저자는 Pixelwise Classification 방식을 제안한다. Cross Entropy Loss를 사용할 경우 Categorical 분포를 매핑하게 되기 때문에 채도가 떨어지는 문제는 확실하게 개선할 수 있다. 다만 이 방식이 Multimodality 문제를 완전히 해결한 것은 아니다. 모델 자체가 Deterministic하기 때문에 하나의 Input엔 하나의 Output이 대응될 뿐이다. 단지 Multimodal 분포를 Deterministic한 모델로 매핑할려하면 채도가 떨어지는 문제점만을 개선했다고 보아야한다.
+
+
+
+이론적으로 컴퓨터상에 나타낼 수 있는 모든 색의 분포를 Class화할려면 총 255 * 255 * 255 Class가 필요하지만, 이 논문의 저자는 영상을 Lab 색공간으로 변환한 후, L(Intensity)은 Input으로부터 그대로 얻어오고, 색차를 나타내는 a, b를 이로부터 얻도록 했다. 그렇게 가능한 a, b 순서쌍의 집합들을 10 grid로 나눠서 총 313 class로 양자화했다. 이후 Inference시엔 최종적으로 얻어진 분포로부터 Annealed Mean을 취해 최종적으로 채색할 색을 결정한다. 즉 2 step 방식이다.
+
+
+
+### 1.3.2.Detail
+
+
+#### 1.3.2.1.Loss Function
+
+![img](./colorful_image_colorization/img/2.png)
+
+
+
+Z는 영상으로, Z hat은 Logit, 그냥 Z는 Label이다. h, w, q는 각각 y축, x축, 클래스(양자화된 색의 값, 총 313개) 차원을 나타낸다. v는 Class Rebalancing 함수를 나타낸다. 즉 위 수식은 Class Rebalancing 함수가 있는 점을 제외하면 일반적인 Pixelwise Classification 손실함수다. 하나 특기할 점은 Label을 One-hot-Encoding하지 않고 Soft-Encoding한다. GT와 가장 가까운 1개 Class를 1로 Encoding하는 대신, 가장 가까운 5개 Class를 Soft-Encoding한다. 각각의 값은 1을 표준편차 5의 가우시안 커널로 Smoothing한 값이다. (약 0.96, 0.01, 0.01, 0.01, 0.01 정도된다.)
+
+
+
+#### 1.3.2.2.Class Rebalancing Function
+
+![img](./colorful_image_colorization/img/3.png)
+
+
+
+Class Rebalancing이 필요한 이유는 ImageNet이나 COCO같은 General Image Dataset은 대부분의 픽셀이 채도가 낮은 색으로 이루어져 있다.(거기다 COCO는 아예 흑백, 세피아톤 영상도 여럿 섞여있어서 전처리 시 전체적인 채도를 기준으로 이러한 영상들을 필터링할 필요가 있었다.) 따라서 등장 빈도에 따라 색들을 Weighting할 필요가 있다. 수식에서 v는 Rebalacing 함수. w는 weight. lambda는 두 분포(바로 밑에서 언급하겠지만 원본분포를 균등분포와 혼합한다.)간 비율을 조절해주는 계수. Q는 총 클래스 수, E[w]는 Weight의 기대값을 나타내는 것이다.  
+
+
+
+윗 줄은 q가 각 픽셀에서 가장 Probability가 높게 나온 픽셀임을 나타낸다. 밑 줄의 첫 번째 항은 w가 원본분포와 균등분포를 lambda를 모수로 섞인 분포와 비례함을 나타내고, 두 번째 항은 이렇게 구한 w의 기대값이 1이어야 한다는 것을 나타낸다. 이를 이용해 각 클래스에 해당하는 Rebalancing Weight를 구할 수 있다.
+
+
+
+
+#### 1.3.2.3.Class Probabilities to Point Estimates Function
+
+![img](./colorful_image_colorization/img/4.png)
+
+
+
+위 Neural Net의 Output으로 나온 확률 분포를 실제 색으로 매핑해주는, Neural Net과는 별개로 작동하는 디코딩 함수이다. z는 확률, T는 분포의 첨도를 조절하기 위한 모수인 Temperature다.
+
+
+
+![img](./colorful_image_colorization/img/5.png)
+
+
+
+분포를 색으로 매핑하는 방식은 크게 두 가지다. 기댓값을 취하는 방법, 확률이 가장 큰 값 하나만 취하는 방법이다. 위 사진의 가장 왼쪽은 기댓값을 취한 채색결과를, 가장 오른쪽은 확률이 가장 큰 값만 취한 채색결과를 보여준다. 각각의 장단점이 극명하게 보인다. 기댓값을 취할경우, Consistency가 높지만 채도가 심히 낮고, 가장 큰 확률만 취할 경우 반대로 채도가 높지만 Consistency가 떨어진다.
+
+
+
+이 둘을 적절하게 섞기 위해 저자는 Annealed Mean을 취했다고 한다. 수식에서 log(z)를 확률을 Logit으로 근사하는 역할로 보면 Temperature Scaling과 거의 유사한 수식인 것을 알 수 있다. 즉, 확률분포의 첨도를 조절해서 이 분포의 기댓값을 취하는 방식을 Annealed Mean이라고 하는 것 같다.
+
 
 
 # 2.Implementation
@@ -180,3 +255,15 @@ High-Level-Feature로부터 Semantic Histogram을 구한 후, K-means 클러스�
 
 
 상세한 구현과정과 코드는 상단 항목 제목의 [링크](https://github.com/demul/auto_colorization_project/tree/master/naive_two_step_CGAN) 참고
+
+
+
+## 2.2.[Colorful Image Colorization](https://github.com/demul/auto_colorization_project/tree/master/colorful_image_colorization)
+
+
+
+![img](./colorful_image_colorization/img/1.png)
+
+
+
+상세한 구현과정과 코드는 상단 항목 제목의 [링크](https://github.com/demul/auto_colorization_project/tree/master/colorful_image_colorization) 참고
