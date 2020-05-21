@@ -48,3 +48,13 @@ PixelCNN++에 따르면, 영상에서 채널간의 Dependency가 그렇게 복�
 
 
 ![img](./img/my%20architecture.png)
+
+
+# 3.Supplementary Explanation
+
+
+이 구조에 쓰인 PixelCNN과 Gated PixelCNN 구조를 이용할려면, [Pixel Recurrent Neural Networks](https://arxiv.org/abs/1601.06759), [Conditional Image Generation with PixelCNN Decoders](https://papers.nips.cc/paper/6527-conditional-image-generation-with-pixelcnn-decoders.pdf) 이 두 논문을 이해해야 하는데, 둘 다 같은 저자가 썼는데 아이디어는 좋은데 설명을 정말 역겨울 정도로 못 해놨다. 제 3자의 도움없이 논문만 보고 이 두 구조를 이해한다는 것은 불가능에 가깝다고 생각한다.
+
+
+
+그래서 이 논문을 이해하기 위해 구글링을 정말 많이 했는데, 이 [페이지](http://sergeiturukin.com/2017/02/24/gated-pixelcnn.html)에서 정말 많은 도움을 받았다. 그림과 애니메이션을 통해 Vertical Stack과 Horizental Stack의 개념을 잘 설명하고 있으니 참고하면 이 무책임하게 쓰여진 시리즈를 이해하는데 많은 도움이 될 것이다.
