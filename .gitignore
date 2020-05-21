@@ -1,5 +1,9 @@
 colorful_image_colorization/.idea/
 colorful_image_colorization/__pycache__/
 colorful_image_colorization/ckpt/
+pixcolor/.idea/
+pixcolor/__pycache__/
+pixcolor/ckpt/
+
 
 
