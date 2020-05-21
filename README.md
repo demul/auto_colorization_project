@@ -2,15 +2,43 @@
 
 # 1.Paper Study
 
+## 1.1.Survey
 
-## 1.1.[Consistent Comic Colorization with Pixel-wise Background Classification](https://nips2017creativity.github.io/doc/Consistent_Comic_Colorization.pdf)
+자동채색 알고리즘은 다양한 방향으로 연구되고 있으며, 기법에 따른 분류, 도메인에 따른 분류, 모델에 따른 분류로 나눌 수 있다.
+
+
+
+![img](./images/survey1.png)
+
+
+
+![img](./images/survey2.png)
+
+
+논문 연구 및, 구현, 그 외에 데모 구현 등에 필요한 시간 등을 종합적으로 고려해 보았을 때, 논문 연구 대상으로 아래 논문들을 선정하였다.
+Deep Colorization(완전자동, Deterministic Model, Gray Scale Domain)
+Colorful Image Colorization(완전자동, Deterministic Model, Gray Scale Domain)
+Pixel Recurrent Neural Network(Auto-Regressive Model Base 논문)
+Conditional Image Generation with PixelCNN Decoders(Auto-Regressive Model Base 논문)
+Consistent Comic Colorization with Pixel-wise Background Classification
+(완전자동, Auto-Regressive Model, Line and Point Domain)
+PixColor(완전자동, Auto-Regressive Model, Gray Scale Domain)
+
+직접적인 구현 대상으로는 아래 알고리즘들을 선정하였다.
+Colorful Image Colorization(완전자동, Deterministic Model, Gray Scale Domain)
+2-Step Pix2Pix for Comic Colorization(완전자동, GAN Model, Line and Point Domain)
+PixColor(완전자동, Auto-Regressive Model, Gray Scale Domain)
+
+
+
+## 1.2.[Consistent Comic Colorization with Pixel-wise Background Classification](https://nips2017creativity.github.io/doc/Consistent_Comic_Colorization.pdf)
 
 
 
 ![img](./naive_two_step_CGAN/img/img1.JPG)
 
 
-### 1.1.1.Idea
+### 1.2.1.Idea
 이 논문의 주요한 Contribution은 기존에 제안되었던 Auto-colorization기법들이 Background-consistent한 결과물을 내놓지 못하던 문제를 Background Detector를 도입함으로서 해결하였다는 것이다.
 이 논문에 제안된 모델은
 
@@ -61,13 +89,13 @@ Ground Truth를 그대로 쓰면 그냥 이미지 전체를 후경으로 취급�
 
 
 
-### 1.1.2.Detail
-#### 1.1.2.1.Dataset
+### 1.2.2.Detail
+#### 1.2.2.1.Dataset
 유미의 세포들이라는 만화의 첫 화부터 238화까지, 총 7394개 이미지를 256x256으로 resize해서 사용했다고 한다. 데이터를 대충 훑어보니 대부분이 컷 분할이 깔끔하고 종횡비의 차가 크지 않은 컷이라 데이터셋으로 쓰기 좋아보였다. 생각보다 데이터가 깔끔해서 아마 전처리보다는 크롤러 만들어서 긁어오는데 더 많은 시간을 소요할 것으로 보인다.
 
 
 
-#### 1.1.2.2.Low-resolution Colorizer
+#### 1.2.2.2.Low-resolution Colorizer
  기본적인 구조는 Pixcolor: Pixel recursive colorization([https://arxiv.org/abs/1705.07208])의 것을 따르고 있으며, 전이학습을 하지 않는 점, 적은 Dataset에 대해 더 나은 성능을 얻기위해 Logistic Mixture Model([https://arxiv.org/abs/1701.05517])을 사용했다는 점이 차이점이다. Canny-edge와 원래 검게 칠해진 부분을 더해 얻은 Outline을 Input으로 하고 Ground-truth를 32x32까지 Downsample한 영상을 Output으로 한다.
 
 
@@ -101,12 +129,12 @@ Pixcolor: Pixel recursive colorization을 이해하기 위해선 영상 도메�
 
 
 
-#### 1.1.2.3.Background Detector
+#### 1.2.2.3.Background Detector
 기본적인 구조는 Image-to-Image Translation with Conditional Adversarial Networks([https://arxiv.org/abs/1611.07004])의 것을 따르고 있으며, 최종단의 Binary한 Output을 Gumbel-Softmax로 얻는다.(https://arxiv.org/abs/1611.01144) 이후 위에 언급했듯, 전경으로 분류된 부분엔 Low-resolution Colorizer의 값을 곱하고, 후경으로 분류된 부분엔 같은 Index를 가진 Ground-truth 값들의 평균을 곱한다. 이 둘을 합해 얻은 이미지와 Ground-truth간의 L1 Loss를 Minimize하게 학습시킨다. 
 
 
 
-#### 1.1.2.4.Polishing Network
+#### 1.2.2.4.Polishing Network
 기본적인 구조는 Image-to-Image Translation with Conditional Adversarial Networks([https://arxiv.org/abs/1611.07004])의 것을 따르고 있으며, 
 
 
@@ -138,11 +166,11 @@ Pixcolor: Pixel recursive colorization을 이해하기 위해선 영상 도메�
 
 
 
-## 1.2.[Deep Colorization](https://arxiv.org/abs/1605.00075)
+## 1.3.[Deep Colorization](https://arxiv.org/abs/1605.00075)
 
 ![img](./Images/deep_colorization.png)
 
-### 1.2.1.Summary
+### 1.3.1.Summary
 아마 완전 자동채색 분야의 Pioneer Paper로 추정된다. 초기 Neural Net 기반 채색이 어떠했는지 맥락만 살피는 의미에서 간략하게 요약해본다. 
 
 
@@ -165,13 +193,13 @@ High-Level-Feature로부터 Semantic Histogram을 구한 후, K-means 클러스�
 
 채색 후 각 픽셀별로 Chrominance값을 얻는데, 하늘이나 바다같은 Low-texture Objects가 Noisy하게 채색되는 문제가 있다. [Joint Bilateral Filtering Technique](http://research.microsoft.com/~hoppe/flash.pdf)으로 노이즈를 감소시켜 최종 Chrominance값을 얻는다. 이후 이를 Luminance값(Greyscale Image)과 결합하여 최종 채색결과물을 얻는다.
 
-## 1.3.[Colorful Image Colorization](https://arxiv.org/pdf/1603.08511.pdf)
+## 1.4.[Colorful Image Colorization](https://arxiv.org/pdf/1603.08511.pdf)
 
 
 ![img](./colorful_image_colorization/img/1.png)
 
 
-### 1.3.1.Idea
+### 1.4.1.Idea
 
 
 
@@ -192,10 +220,10 @@ High-Level-Feature로부터 Semantic Histogram을 구한 후, K-means 클러스�
 
 
 
-### 1.3.2.Detail
+### 1.4.2.Detail
 
 
-#### 1.3.2.1.Loss Function
+#### 1.4.2.1.Loss Function
 
 ![img](./colorful_image_colorization/img/2.png)
 
@@ -205,7 +233,7 @@ Z는 영상으로, Z hat은 Logit, 그냥 Z는 Label이다. h, w, q는 각각 y�
 
 
 
-#### 1.3.2.2.Class Rebalancing Function
+#### 1.4.2.2.Class Rebalancing Function
 
 ![img](./colorful_image_colorization/img/3.png)
 
@@ -220,7 +248,7 @@ Class Rebalancing이 필요한 이유는 ImageNet이나 COCO같은 General Image
 
 
 
-#### 1.3.2.3.Class Probabilities to Point Estimates Function
+#### 1.4.2.3.Class Probabilities to Point Estimates Function
 
 ![img](./colorful_image_colorization/img/4.png)
 
