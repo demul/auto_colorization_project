@@ -369,3 +369,15 @@ Low-Resolution Colorization Network는 기본적으로 Pixel recursive super res
 
 
 상세한 구현과정과 코드는 상단 항목 제목의 [링크](https://github.com/demul/auto_colorization_project/tree/master/colorful_image_colorization) 참고
+
+
+
+## 2.3.[PixColor](https://github.com/demul/auto_colorization_project/tree/master/pixcolor)
+
+
+
+![img](./pixcolor/img/pixcolor3.png)
+
+
+
+상세한 구현과정과 코드는 상단 항목 제목의 [링크](https://github.com/demul/auto_colorization_project/tree/master/pixcolor) 참고
