@@ -8,11 +8,11 @@
 
 
 
-![img](./images/survey1.png)
+![img](./Images/survey1.png)
 
 
 
-![img](./images/survey2.png)
+![img](./Images/survey2.png)
 
 
 논문 연구 및, 구현, 그 외에 데모 구현 등에 필요한 시간 등을 종합적으로 고려해 보았을 때, 논문 연구 대상으로 아래 논문들을 선정하였다.
