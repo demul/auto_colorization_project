@@ -16,18 +16,39 @@
 
 
 논문 연구 및, 구현, 그 외에 데모 구현 등에 필요한 시간 등을 종합적으로 고려해 보았을 때, 논문 연구 대상으로 아래 논문들을 선정하였다.
-Deep Colorization(완전자동, Deterministic Model, Gray Scale Domain)
-Colorful Image Colorization(완전자동, Deterministic Model, Gray Scale Domain)
-Pixel Recurrent Neural Network(Auto-Regressive Model Base 논문)
-Conditional Image Generation with PixelCNN Decoders(Auto-Regressive Model Base 논문)
-Consistent Comic Colorization with Pixel-wise Background Classification
-(완전자동, Auto-Regressive Model, Line and Point Domain)
-PixColor(완전자동, Auto-Regressive Model, Gray Scale Domain)
+
+
+**Deep Colorization**(완전자동, Deterministic Model, Gray Scale Domain)
+
+
+**Colorful Image Colorization**(완전자동, Deterministic Model, Gray Scale Domain)
+
+
+**Pixel Recurrent Neural Network**(Auto-Regressive Model Base 논문)
+
+
+**Conditional Image Generation with PixelCNN Decoders**(Auto-Regressive Model Base 논문)
+
+
+**Consistent Comic Colorization with Pixel-wise Background Classification**(완전자동, Auto-Regressive Model, Line and Point Domain)
+
+
+**PixColor**(완전자동, Auto-Regressive Model, Gray Scale Domain)
+
+
+
 
 직접적인 구현 대상으로는 아래 알고리즘들을 선정하였다.
-Colorful Image Colorization(완전자동, Deterministic Model, Gray Scale Domain)
-2-Step Pix2Pix for Comic Colorization(완전자동, GAN Model, Line and Point Domain)
-PixColor(완전자동, Auto-Regressive Model, Gray Scale Domain)
+
+
+
+**Colorful Image Colorization**(완전자동, Deterministic Model, Gray Scale Domain)
+
+
+**2-Step Pix2Pix for Comic Colorization**(완전자동, GAN Model, Line and Point Domain)
+
+
+**PixColor**(완전자동, Auto-Regressive Model, Gray Scale Domain)
 
 
 
