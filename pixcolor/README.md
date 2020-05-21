@@ -15,7 +15,7 @@ Color Space로, YCbCr대신 사람의 시각인지에 가장 가까운 Lab Color
 ## 2.2.Distribution 
 
 
-![img](./img/pixcolor4)
+![img](./img/pixcolor4.png)
 
 
 
@@ -24,7 +24,7 @@ PixelCNN++에 따르면, 영상에서 채널간의 Dependency가 그렇게 복�
 ## 2.3.Architecture
 
 
-![img](./img/pixcolor5)
+![img](./img/pixcolor5.png)
 
 
 
@@ -36,7 +36,7 @@ PixelCNN++에 따르면, 영상에서 채널간의 Dependency가 그렇게 복�
 
 
 
-![img](./img/pixcolor6)
+![img](./img/pixcolor6.png)
 
 
 
@@ -47,4 +47,4 @@ PixelCNN++에 따르면, 영상에서 채널간의 Dependency가 그렇게 복�
 내가 재설계한 Architecture를 표로 나타내면 다음과 같다.
 
 
-![img](./img/'my architecture.png')
+![img](./img/my%20architecture.png)
