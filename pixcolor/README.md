@@ -68,5 +68,4 @@ PixelCNN++에 따르면, 영상에서 채널간의 Dependency가 그렇게 복�
 ![img](./img/GatedPixelCNN3.png)
 ![img](./img/GatedPixelCNN4.png)
 ![img](./img/GatedPixelCNN5.png)
-![img](./img/GatedPixelCNN6.png)
 ![img](./img/GatedPixelCNN7.png)
