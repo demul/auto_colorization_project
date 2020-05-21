@@ -55,6 +55,10 @@
 
 
 
+　
+
+
+
 ## 1.2.[Consistent Comic Colorization with Pixel-wise Background Classification](https://nips2017creativity.github.io/doc/Consistent_Comic_Colorization.pdf)
 
 
@@ -291,6 +295,52 @@ Class Rebalancing이 필요한 이유는 ImageNet이나 COCO같은 General Image
 
 
 이 둘을 적절하게 섞기 위해 저자는 Annealed Mean을 취했다고 한다. 수식에서 log(z)를 확률을 Logit으로 근사하는 역할로 보면 Temperature Scaling과 거의 유사한 수식인 것을 알 수 있다. 즉, 확률분포의 첨도를 조절해서 이 분포의 기댓값을 취하는 방식을 Annealed Mean이라고 하는 것 같다.
+
+
+
+## 1.5.PixColor
+
+
+![img](./pixcolor/img/pixcolor1.png)
+
+
+
+### 1.5.1.Idea
+
+
+
+이 논문은 Auto-Regressive Generative Model인 PixelCNN을 자동채색에 도입해 높은 성능을 낸 논문이다. 자동채색에 Auto-Regressive Model을 사용했을 때의 장점은 Multimodal한 객체를 다양한 Mode에서 높은 채도로 채색할 수 있다는 점, 한 픽셀, 한 픽셀을 이전 픽셀들과의 Dependency를 고려하여 샘플하기 때문에 높은 Consistency를 보여준다는 점, 그리고 생성물의 분포를 Log Likelihood로 명시적으로 확인할 수 있다는 점 등이 있다. 
+
+
+
+단 Auto-Regressive Model은 학습 시엔 (Teacher Forcing 상황을 가정하여) 병렬화가 가능하지만 Inference 속도는 한 픽셀 한 픽셀 만드느라 엄청나게 느리다. 이러한 단점을 커버하기 위해 이 논문에선 작은 해상도(28x28)의 Chrominance를 출력한다. 이렇게 해도 되는 이유는 사람이 Luminance 변화보다 Chrominance 변화에 덜 민감하기 때문이다. 실제로 논문에서 사진으로 든 예시를 보면 이를 직관적으로 이해할 수 있다. 고해상도의 Luminance에 저해상도의 Chrominance를 그냥 Bilinear Interpolation해서 더해버려도, 원본과 큰 차이를 느낄 수 없는 것을 알 수 있다.
+
+
+
+![img](./pixcolor/img/pixcolor2.png)
+
+
+
+따라서 PixelCNN의 출력으로 28x28의 저해상도 Chrominance를 출력해도 채색성능에 큰 문제가 없다. 하지만 이 논문에선 성능을 더 높이기 위해 Refinement Network을 별로도 만들어 Super Resolution하여 더 좋은 채색성능을 얻었다.
+
+
+
+###1.5.2.Detail
+
+
+
+![img](./pixcolor/img/pixcolor3.png)
+
+
+이 논문의 Architecture는 정말 간략하게 서술되어 있다. 먼저 크게 Low-Resolution Colorization Network와 Refinement Network로 나뉘고, 이 두 모델은 서로 독립적이다. 두 모델을  End-to-End로 안하고 독립적으로 학습시키는 이유는, End-to-End로 학습시키게 되면, Low-Resolution Colorization Network가 뱉는 Multimodal한 결과들을 모두 하나의 Mode(GT)로 만들어버리게 된다. 따라서 두 모델을 독립적으로 학습시킨다.
+
+
+
+Low-Resolution Colorization Network는 기본적으로 Pixel recursive super resolution (https://arxiv.org/abs/1702.00783)의 구조와 유사한 구조를 가지고 있다. Encoding Part는 Resnet과 Unet을 합쳐놓은 듯한 Architecture를 가지고 있다. Luminance Image를 입력으로 받은 Resnet-101의 3번째 블록에서 임베딩 Feature Map을 뽑아서(Conditioning Network) 1x1 Convolution을 적용해 채널수를 4로 줄인다. 이후 Luminance Image와 Concat해서 (Unet Connection과 유사한 부분) 28x28x5 Image로 만든 뒤, Adaptation Network를 통과시켜 나온 Feature Map을 PixelCNN에 통과시켜 28x28x2의 Chrominance Image를 얻는다. 여기서 사용하는 PixelCNN은 Original PixelCNN이 아닌 Gated PixelCNN이다. 
+
+
+
+이후 Refinement Network는 Let there be Color!: Joint End-to-end Learning of Global and Local Image Priors for Automatic Image Colorization with Simultaneous Classification (http://iizuka.cs.tsukuba.ac.jp/projects/colorization/data/colorization_sig2016.pdf)의 구조를 따르되 레이어를 좀 더 쌓았고, Downsampling을 Strided Convolution이나 Pooling이 아닌 Bilinear Interpolation으로 수행했다고 한다.
 
 
 
