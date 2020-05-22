@@ -325,7 +325,7 @@ Class Rebalancing이 필요한 이유는 ImageNet이나 COCO같은 General Image
 
 
 
-###1.5.2.Detail
+### 1.5.2.Detail
 
 
 
