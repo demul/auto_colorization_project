@@ -153,7 +153,7 @@ Pixcolor: Pixel recursive colorization을 이해하기 위해선 영상 도메�
 
 
 
-그래서 성능을 어느정도 내주고 학습속도를 얻은 PixelCNN같은 모델들이 등장하게 된다. 이 모델은 그림과 같이 생긴 Convolutional Filter를 이용해, 여러번 Convolve하여 마치 좌상단 피쳐맵으로부터 나온값이 중앙에 전달되고 이것들이 다시 Sequential하게 우하단으로 전달되는 모양새를 띈다. PixelCNN에 대해선 바로 이 논문 다음으로 공부하고 구현해 볼 것이다.
+그래서 성능을 어느정도 내주고 학습속도를 얻은 PixelCNN같은 모델들이 등장하게 된다. 이 모델은 그림과 같이 생긴 Convolutional Filter를 이용해, 여러번 Convolve하여 마치 좌상단 피쳐맵으로부터 나온값이 중앙에 전달되고 이것들이 다시 Sequential하게 우하단으로 전달되는 모양새를 띈다. PixelCNN에 대한 더 자세한 내용은 본인의 [**기본개념정리 리파지토리 : Understanding PixelCNN**](https://github.com/demul/basic_idea/blob/master/Understanding%20PixelCNN/understanding_pixelcnn.md)을 참고바란다.
 
 
 
