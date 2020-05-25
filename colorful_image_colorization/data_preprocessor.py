@@ -76,7 +76,7 @@ class DataPreprocessor:
             count += 1
 
             img_resized = self.resize_crop(img)
-            # np.save(os.path.join(self.output_resized_path, i), img_resized)
+            np.save(os.path.join(self.output_resized_path, i), img_resized)
 
             #################################################
             # Label's resolution must be 1/4 of input.
