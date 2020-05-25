@@ -57,7 +57,7 @@ PixelCNN++에 따르면, 영상에서 채널간의 Dependency가 그렇게 복�
 
 
 
-그래서 이 논문을 이해하기 위해 구글링을 정말 많이 했는데, 이 [페이지](http://sergeiturukin.com/2017/02/24/gated-pixelcnn.html)에서 정말 많은 도움을 받았다. 그림과 애니메이션을 통해 Vertical Stack과 Horizental Stack의 개념을 잘 설명하고 있으니 참고하면 이 무책임하게 쓰여진 시리즈를 이해하는데 많은 도움이 될 것이다.
+그래서 이 논문을 이해하기 위해 구글링을 정말 많이 했는데, 이 [페이지](http://sergeiturukin.com/2017/02/24/gated-pixelcnn.html)에서 정말 많은 도움을 받았다. 그림과 애니메이션을 통해 Vertical Stack과 Horizontal Stack의 개념을 잘 설명하고 있으니 참고하면 이 무책임하게 쓰여진 시리즈를 이해하는데 많은 도움이 될 것이다.
 
 
 
