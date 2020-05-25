@@ -10,8 +10,8 @@ class DataPreprocessor:
         #################################################
         # Path setting
         self.input_path = '/coco/data_raw'
-        self.output_resized_path = '/coco/data_resized'
-        self.output_preprocessed_path = '/coco/data_preprocessed'
+        self.output_resized_path = '/coco/data_resized_56x56'
+        self.output_preprocessed_path = '/coco/data_preprocessed_CIC'
 
         if not (os.path.exists(self.input_path)):
             print("[unzip data]")

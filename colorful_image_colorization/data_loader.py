@@ -5,8 +5,8 @@ import util
 
 class DataLoader:
     def __init__(self, validation_len=1000, softencoding_variance=5):
-        self.input_path = '/coco/data_resized'
-        self.label_path = '/coco/data_preprocessed'
+        self.input_path = '/coco/data_resized_56x56'
+        self.label_path = '/coco/data_preprocessed_CIC'
 
         self.train_path_list = [os.path.join(self.input_path, x) for x in os.listdir(self.input_path)]  # 103,951
         self.val_path_list = self.train_path_list[-validation_len:]  # 1000
