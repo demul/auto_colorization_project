@@ -66,7 +66,7 @@ class DataLoader:
             filename_label = self.train_label_path_list[val]
 
             batch_img[idx] = np.expand_dims(np.mean(np.load(filename_input), axis=2), axis=2)
-            batch_label[idx] = self.class2softendoing(np.load(filename_label))
+            batch_label[idx] = self.class2softencoding(np.load(filename_label))
 
         self.cursor_train += batch_size
         if self.cursor_train + batch_size > len(self.idx_train):
@@ -106,7 +106,7 @@ class DataLoader:
             batch_GT[idx] = np.load(filename_input)
             batch_img[idx] = np.expand_dims(np.mean(batch_GT[idx], axis=2), axis=2)
             # [None, 224, 224, 1]
-            batch_label[idx] = self.class2softendoing(np.load(filename_label))
+            batch_label[idx] = self.class2softencoding(np.load(filename_label))
             # [None, 56, 56, 262]
 
         self.cursor_val += batch_size
@@ -116,7 +116,7 @@ class DataLoader:
         return batch_img, batch_label, batch_GT
 
 
-    def class2softendoing(self, img_class):
+    def class2softencoding(self, img_class):
         #################################################
         # Encoding's dimension is (height, width, number of classes)
         h = img_class.shape[0]

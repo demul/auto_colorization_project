@@ -105,7 +105,7 @@ class DataPreprocessor:
         w = img.shape[1]
 
         if h > w:
-            img = cv2.resize(img, (224, int(h / w * 224)), interpolation = cv2.INTER_LINEAR)
+            img = cv2.resize(img, (224, int(h / w * 224)), interpolation=cv2.INTER_LINEAR)
         else:
             img = cv2.resize(img, (int(w / h * 224), 224), interpolation=cv2.INTER_LINEAR)
 
