@@ -22,7 +22,7 @@ import os
 #####################################################################
 
 # declare model
-model = model.Model(1)
+model = model.PixelCNN(1)
 
 # declare decoder
 filename_gamut = str()
@@ -36,11 +36,12 @@ for i in range(len(list_filenames)):
 decoder = util.Decoder(util.tablize_gamut(np.load(filename_gamut)))
 
 # declare arguments
-X = tf.placeholder(shape=[None, 224, 224, 1], dtype=tf.float32)
+luminance_ = tf.placeholder(shape=[None, 224, 224, 1], dtype=tf.float32)
+chrominance_ = tf.placeholder(shape=[None, 28, 28, 2], dtype=tf.float32)
 isTrain = tf.constant(False)
 
 # make graph
-logit_ = model.color_classifier(X, isTrain=isTrain)
+logit_ = model.colorizer(luminance_, chrominance_, isTrain=isTrain)
 prob_ = tf.nn.softmax(logit_)
 
 # define session
@@ -54,6 +55,29 @@ ckpt = tf.train.get_checkpoint_state('./ckpt')
 if ckpt and tf.train.checkpoint_exists(ckpt.model_checkpoint_path):
     saver.restore(sess, ckpt.model_checkpoint_path)
 
+def recursive_image_generation(sess__, L__, lb_ab__, isTrain__, prob___, input_batch__, label_ab_batch__):
+    # recursive multimodal sampling
+    result_img = np.zeros([1, 28, 28, 2], dtype=np.uint8)
+
+    ## 'only a first pixel' is picked from label_ab_batch!
+    ## and rest pixels are sampled recursively
+    result_img[:, 0, 0, :] = label_ab_batch__[:, 0, 0, :] # first (0, 0) index of result
+    prob____ = sess__.run(prob___, feed_dict={L__: input_batch__, lb_ab__: label_ab_batch__, isTrain__: False})
+    result_img[:, 0, 1, :] = decoder.encoding2ab(prob____[:, 0, 1, :]) # second (0, 1) index of result
+
+    ## make index list [(0, 2), (0, 3).....(27, 26), (27, 27)]
+    list_idx_order = []
+    for ii in range(28):
+        for jj in range(28):
+            if jj == 0 or jj == 1:
+                continue
+            list_idx_order.append([ii, jj])
+
+    for idx_pair in list_idx_order:
+        prob____ = sess.run(prob___, feed_dict={L__: input_batch__, lb_ab__: result_img, isTrain__: False})
+        result_img[:, idx_pair[0], idx_pair[1], :] = decoder.encoding2ab(
+            prob____[:, idx_pair[0], idx_pair[1], :])
+    return result_img
 
 def resize_crop(img):
     h = img.shape[0]
@@ -111,10 +135,11 @@ def uploaded_file():
         img_gray = np.expand_dims(np.mean(img_arr, axis=2), axis=2).astype(np.uint8)
 
         # expand both to batch
-        batch_input = np.expand_dims(img_gray, axis=0) # [1, 224, 224, 1]
+        batch_input = np.expand_dims(img_gray, axis=0) # [1, 56, 56, 1]
 
         # inference(CORE)
-        prob = sess.run(prob_, feed_dict={X: batch_input})
+        output_batch_ab = recursive_image_generation(sess, luminance_, chrominance_, isTrain, prob_,
+                                                     batch_input, np.zeros([1, 28, 28, 1], dtype=np.float32))
         batch_output = decoder.encoding2bgr(batch_input, prob)
         img_output = np.squeeze(batch_output)
         img_output = cv2.resize(img_output, (224, 244), interpolation=cv2.INTER_LINEAR)

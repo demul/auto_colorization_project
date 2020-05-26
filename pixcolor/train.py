@@ -133,7 +133,7 @@ class ColorizationNet:
                     wf.write(loss_info)
 
                 # save model by 10 epoch in different directory
-                if epoch % 10 == 0 and epoch != 0:
+                if epoch % 2 == 0 and epoch != 0:
                     model_dir = './ckpt' + '_epoch' + str(
                         epoch + 1) + '/model.ckpt'
                     saver.save(sess, model_dir)
