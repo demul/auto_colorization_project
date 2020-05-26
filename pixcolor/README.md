@@ -6,13 +6,20 @@
 # 2.Detail
 
 
-## 2.1.Color Space
+
+## 2.1.Dataset
+
+
+Dataset으로 MS-COCO에서 채도가 낮은 이미지와 흑백이미지를 필터링한 들을을사용했다.
+
+
+## 2.2.Color Space
 
 
 Color Space로, YCbCr대신 사람의 시각인지에 가장 가까운 Lab Color Space를 사용했다.
 
 
-## 2.2.Distribution 
+## 2.3.Distribution 
 
 
 ![img](./img/pixcolor4.png)
@@ -22,13 +29,13 @@ Color Space로, YCbCr대신 사람의 시각인지에 가장 가까운 Lab Color
 PixelCNN++에 따르면, 영상에서 채널간의 Dependency가 그렇게 복잡하지 않으므로, a, b 두 채널을 각각 Sequential하게 예측하는 대신, Joint Distribution을 한꺼번에 예측하도록 했다. a, b의 순서쌍은 총 262개로 Quantization했다.
 
 
-## 2.3.Conditioning Network
+## 2.4.Conditioning Network
 
 
 Pre-trained된 Conditioning Network를 사용하지 않았다. 시간이 부족했기 때문이다.
 
 
-## 2.4.Architecture
+## 2.5.Architecture
 
 
 ![img](./img/pixcolor5.png)
