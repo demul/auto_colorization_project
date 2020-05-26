@@ -10,7 +10,7 @@
 ## 2.1.Dataset
 
 
-Dataset으로 MS-COCO에서 채도가 낮은 이미지와 흑백이미지를 필터링한 들을을사용했다.
+Dataset으로 MS-COCO에서 채도가 낮은 이미지와 흑백이미지를 필터링한 것들을 사용했다.
 
 
 ## 2.2.Color Space
