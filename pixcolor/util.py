@@ -128,7 +128,7 @@ class Decoder:
 
     def probabilistic_decode(self, encoding):
         # encoding : [262,]
-        class_sampled = np.random.choice(261, 1, p=encoding)[0]
+        class_sampled = np.random.choice(262, 1, p=encoding)[0]
         ab = self.table_gamut_inverse[class_sampled + 1] * 10
 
         return ab.astype(np.uint8)

@@ -98,7 +98,7 @@ class gated_conv_unit:
                                 activation=None)
         # L1_vertical   : [None, 29, 28, 128]
 
-        self.L1_vertical_f, self.L1_vertical_g = tf.split(self.L1_vertical, 2)
+        self.L1_vertical_f, self.L1_vertical_g = tf.split(self.L1_vertical, 2, axis=3)
         self.L1_vertical_f = tf.tanh(self.L1_vertical_f)
         self.L1_vertical_g = tf.sigmoid(self.L1_vertical_g)
         self.L2_vertical = self.L1_vertical_f * self.L1_vertical_g
@@ -121,7 +121,7 @@ class gated_conv_unit:
         self.L2_horizontal = self.L1_horizontal + self.L1_v2h
         # L2_horizontal : [None, 28, 28, 128]
 
-        self.L2_horizontal_f, self.L2_horizontal_g = tf.split(self.L2_horizontal, 2)
+        self.L2_horizontal_f, self.L2_horizontal_g = tf.split(self.L2_horizontal, 2, axis=3)
         self.L2_horizontal_f = tf.tanh(self.L2_horizontal_f)
         self.L2_horizontal_g = tf.sigmoid(self.L2_horizontal_g)
         self.L3_horizontal = self.L2_horizontal_f * self.L2_horizontal_g

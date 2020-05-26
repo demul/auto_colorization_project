@@ -134,6 +134,7 @@ class PixelCNN:
             L1_vertical, L1_horizontal= ops.split_into_stacks(self.L1)
             # L1_vertical [None, 29, 28, 64], L1_horizontal [None, 28, 28, 64]
 
+            ###### gated conv unit x 10
             for i in range(10):
                 gated_conv_block = ops.gated_conv_unit('gated_conv%d' % i, self.decaying_factor, ch=64, ksize=5)
                 L1_vertical, L1_horizontal= gated_conv_block.gated_conv(L1_vertical, L1_horizontal, isTrain,

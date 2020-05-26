@@ -102,6 +102,7 @@ class ColorizationNet:
                         print(progress_view)
                         self.metric_list['losses'].append(loss)
 
+
                 # save validation image
                 input_batch, label_class_batch, label_ab_batch, GT_batch = self.data_loader.next_val(self.input_size)
                 # put validation cursor back to 0
@@ -109,10 +110,10 @@ class ColorizationNet:
 
                 # get output ab
                 output_batch_ab = self.recursive_image_generation(sess, L, lb_ab, isTrain, prob_, input_batch, label_ab_batch)
-                # concat ab with L
-                output_batch = np.concatenate([input_batch, output_batch_ab], axis=3)
+                # concat ab with L and convert to BGR
+                output_batch = util.Lab2bgr(input_batch, output_batch_ab)
                 images_result_path = os.path.join(self.result_dir, 'epoch%04d.png' % (epoch + 1))
-                self.show_result(output_batch[:8], GT_batch[:8], epoch + 1, save=True, path=images_result_path)
+                self.show_result(output_batch[:4], GT_batch[:4], epoch + 1, save=True, path=images_result_path)
 
                 # validate
                 for itr in range(len(self.data_loader.idx_val)//self.input_size):
@@ -149,7 +150,7 @@ class ColorizationNet:
 
     def recursive_image_generation(self, sess, L, lb_ab, isTrain, prob_, input_batch, label_ab_batch):
         # recursive multimodal sampling
-        result_img = np.zeros([self.input_size, 28, 28, 2], dtype=tf.uint8)
+        result_img = np.zeros([self.input_size, 28, 28, 2], dtype=np.uint8)
 
         ## 'only a first pixel' is picked from label_ab_batch!
         ## and rest pixels are sampled recursively
@@ -176,16 +177,17 @@ class ColorizationNet:
         img_gen = self.bgr2rgb(img_gen)
         img_GT = self.bgr2rgb(img_GT)
 
-        size_figure_grid = 4
-        fig, ax = plt.subplots(size_figure_grid, size_figure_grid, figsize=(6, 6))
-        for i in range(size_figure_grid) :
-            for j in range (size_figure_grid) :
+        size_figure_grid_y = 2
+        size_figure_grid_x = 4
+        fig, ax = plt.subplots(size_figure_grid_y, size_figure_grid_x, figsize=(6, 6))
+        for i in range(size_figure_grid_y) :
+            for j in range (size_figure_grid_x) :
                 ax[i, j].get_xaxis().set_visible(False)
                 ax[i, j].get_yaxis().set_visible(False)
 
-        for k in range(0, size_figure_grid * size_figure_grid, 2):
-            i = k // size_figure_grid
-            j = k % size_figure_grid
+        for k in range(0, size_figure_grid_y * size_figure_grid_x, 2):
+            i = k // size_figure_grid_x
+            j = k % size_figure_grid_x
             ax[i, j].cla()
             ax[i, j].imshow(img_gen[k//2].astype(np.uint8))
             ax[i, j+1].cla()
