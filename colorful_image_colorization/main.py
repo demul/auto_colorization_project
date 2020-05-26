@@ -10,7 +10,7 @@ import os
 # i don't use data-dependent weight initialization.
 ###########################################################
 
-if not(os.path.exists('/coco/data_preprocessed')):
+if not(os.path.exists('/coco/data_preprocessed_CIC')):
     DP = data_preprocessor.DataPreprocessor()
     DP.run()
 
