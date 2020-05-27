@@ -11,8 +11,8 @@ class DataPreprocessor:
         # Path setting
         self.input_path = '/coco/data_raw'
         self.output_resized_path = '/coco/data_resized_224x224'
-        self.output_preprocessed_class_path = '/coco/data_preprocessed_PixColor_class' # 28 x 28 x 1 (class)
-        self.output_preprocessed_ab_path = '/coco/data_preprocessed_PixColor_ab' # 28 x 28 x 2 (ab)
+        self.output_preprocessed_class_path = '/coco/data_preprocessed_PixColorCIC_class' # 56 x 56 x 1 (class)
+        self.output_preprocessed_ab_path = '/coco/data_preprocessed_PixColorCIC_ab' # 56 x 56 x 2 (ab)
 
         if not (os.path.exists(self.input_path)):
             print("[unzip data]")
@@ -80,12 +80,12 @@ class DataPreprocessor:
             count += 1
 
             img_resized = self.resize_crop(img)
-            np.save(os.path.join(self.output_resized_path, i), img_resized)
+            # np.save(os.path.join(self.output_resized_path, i), img_resized)
 
             #################################################
-            # Label's resolution must be 1/8 of input.
-            # Because the network downsample resolution of input by 8.
-            img_resized = cv2.resize(img_resized, (28, 28), interpolation = cv2.INTER_LINEAR)
+            # Label's resolution must be 1/4 of input.
+            # Because the network downsample resolution of input by 4.
+            img_resized = cv2.resize(img_resized, (56, 56), interpolation = cv2.INTER_LINEAR)
             img_Lab = self.bgr2Lab(img_resized)
             np.save(os.path.join(self.output_preprocessed_ab_path, i), img_Lab[:, :, 1:]//10 * 10)
             img_class = self.Lab2class(img_Lab)

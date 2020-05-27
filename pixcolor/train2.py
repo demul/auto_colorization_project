@@ -4,7 +4,7 @@ import tensorflow as tf
 import time
 import matplotlib.pyplot as plt
 
-import model
+import model2
 import data_loader
 import util
 
@@ -30,16 +30,20 @@ class ColorizationNet:
 
         ### For training and inference
         self.graph = tf.Graph()
-        self.model = model.PixelCNN(input_size, decaying_factor=self.decaying_factor)
+        self.model = model2.PixelCNN(input_size, decaying_factor=self.decaying_factor)
         self.data_loader = data_loader.DataLoader(validation_len=1000)
         self.decoder = util.Decoder(self.data_loader.table_gamut, temperature=0.38, sampling='probabilistic')
 
 
     def make_graph(self, luminance_, chrominance_, label_, isTrain, learning_rate_):
-        logit = self.model.colorizer(luminance_, chrominance_, isTrain=isTrain)
+        logit, condition_adapted = self.model.colorizer(luminance_, chrominance_, isTrain=isTrain)
         prob = tf.nn.softmax(logit)
-        CEE = tf.reduce_mean(tf.reduce_sum(tf.nn.softmax_cross_entropy_with_logits_v2(logits=logit, labels=label_), axis=(1, 2)))
-        tf.add_to_collection('losses', CEE)
+        prob_deterministic = tf.nn.softmax(condition_adapted)
+        CEE_condition = tf.reduce_mean(tf.reduce_sum(tf.nn.softmax_cross_entropy_with_logits_v2
+                                                     (logits=condition_adapted, labels=label_), axis=(1, 2)))
+        tf.add_to_collection('losses', CEE_condition)
+        CEE_sum = tf.reduce_mean(tf.reduce_sum(tf.nn.softmax_cross_entropy_with_logits_v2(logits=logit, labels=label_), axis=(1, 2)))
+        tf.add_to_collection('losses', CEE_sum)
 
         ##### must minimize total loss
         total_loss = tf.add_n(tf.get_collection('losses'))
@@ -48,7 +52,7 @@ class ColorizationNet:
                                               beta1=self.adam_beta1, beta2=self.adam_beta2).minimize(total_loss)
         ##### but we need to watch Cross Entropy Error
         ##### to watch how well our model does converge.
-        return train_op, prob, CEE
+        return train_op, prob, prob_deterministic, CEE_sum, CEE_condition
 
 
     def run(self, max_epoch, loss_sampling_step):
@@ -63,7 +67,7 @@ class ColorizationNet:
             learning_rate = tf.placeholder(dtype=tf.float32)
 
             # make graph
-            train_op, prob_, loss_ = self.make_graph(L, lb_ab, lb_class, isTrain, learning_rate)
+            train_op, prob_, prob_deterministic, loss_, loss_condition_ = self.make_graph(L, lb_ab, lb_class, isTrain, learning_rate)
 
             # define session
             config = tf.ConfigProto()
@@ -82,25 +86,51 @@ class ColorizationNet:
             start_time = time.time()
             for epoch in range(max_epoch):
                 train_loss = 0
+                train_loss_condition = 0
                 val_loss = 0
 
-                # for itr in range(len(self.data_loader.idx_train)//self.input_size):
-                #     # load training data
-                #     input_batch, label_class_batch, label_ab_batch = self.data_loader.next_train(self.input_size)
-                #
-                #     # run session
-                #     _, loss = sess.run([train_op, loss_],
-                #                                feed_dict={L: input_batch, lb_class: label_class_batch,
-                #                                           lb_ab: label_ab_batch, isTrain: True, learning_rate: self.lr})
-                #     train_loss += loss / (len(self.data_loader.idx_train)//self.input_size)
-                #
-                #     # sample training loss
-                #     if itr % loss_sampling_step == 0:
-                #         progress_view = 'progress : ' \
-                #                         + '%7.6f' % (itr / (len(self.data_loader.idx_train)//self.input_size) * 100)\
-                #                         + '%  loss :' + '%7.6f' % loss
-                #         print(progress_view)
-                #         self.metric_list['losses'].append(loss)
+                for itr in range(len(self.data_loader.idx_train)//self.input_size):
+                    # load training data
+                    input_batch, label_class_batch, label_ab_batch = self.data_loader.next_train(self.input_size)
+
+                    # run session
+                    _, loss, loss_condition = sess.run([train_op, loss_, loss_condition_],
+                                               feed_dict={L: input_batch, lb_class: label_class_batch,
+                                                          lb_ab: label_ab_batch, isTrain: True, learning_rate: self.lr})
+                    train_loss += loss / (len(self.data_loader.idx_train)//self.input_size)
+                    train_loss_condition += loss_condition / (len(self.data_loader.idx_train) // self.input_size)
+
+                    # sample training loss
+                    if itr % loss_sampling_step == 0:
+                        progress_view = 'progress : ' \
+                                        + '%7.6f' % (itr / (len(self.data_loader.idx_train)//self.input_size) * 100)\
+                                        + '%  loss :' + '%7.6f' % loss\
+                                        + '%  loss_condition :' + '%7.6f' % loss_condition
+                        print(progress_view)
+                        self.metric_list['losses'].append(loss)
+
+                        # #################################################################
+                        # # save validation image
+                        # input_batch, label_class_batch, label_ab_batch, GT_batch = self.data_loader.next_val(
+                        #     self.input_size)
+                        # # put validation cursor back to 0
+                        # self.data_loader.cursor_val = 0
+                        #
+                        # # get output ab
+                        # output_batch_ab = self.recursive_image_generation(sess, L, lb_ab, isTrain, prob_, input_batch,
+                        #                                                   label_ab_batch)
+                        # output_batch_ab_deterministic = self.one_shot_generation(sess, L, lb_ab, isTrain, prob_deterministic, input_batch,
+                        #                                                   label_ab_batch)
+                        # # concat ab with L and convert to BGR
+                        # output_batch = util.Lab2bgr(input_batch, output_batch_ab)
+                        # output_batch_deterministic = util.Lab2bgr(input_batch, output_batch_ab_deterministic)
+                        #
+                        # images_result_path = os.path.join(self.result_dir, 'itr%06d.png' % (itr + 1))
+                        # self.show_result(output_batch[:4], GT_batch[:4], epoch + 1, save=True, path=images_result_path)
+                        #
+                        # images_result_path = os.path.join(self.result_dir, 'itr%06d_dtm.png' % (itr + 1))
+                        # self.show_result(output_batch_deterministic[:4], GT_batch[:4], epoch + 1, save=True, path=images_result_path)
+                        # #################################################################
 
 
                 # save validation image
@@ -109,12 +139,21 @@ class ColorizationNet:
                 self.data_loader.cursor_val = 0
 
                 # get output ab
-                # output_batch_ab = self.recursive_image_generation(sess, L, lb_ab, isTrain, prob_, input_batch, label_ab_batch)
-                output_batch_ab = self.one_shot_generation(sess, L, lb_ab, isTrain, prob_, input_batch, label_ab_batch)
+                output_batch_ab = self.recursive_image_generation(sess, L, lb_ab, isTrain, prob_, input_batch,
+                                                                  label_ab_batch)
+                output_batch_ab_deterministic = self.one_shot_generation(sess, L, lb_ab, isTrain, prob_deterministic,
+                                                                         input_batch,
+                                                                         label_ab_batch)
                 # concat ab with L and convert to BGR
                 output_batch = util.Lab2bgr(input_batch, output_batch_ab)
+                output_batch_deterministic = util.Lab2bgr(input_batch, output_batch_ab_deterministic)
+
                 images_result_path = os.path.join(self.result_dir, 'epoch%04d.png' % (epoch + 1))
                 self.show_result(output_batch[:4], GT_batch[:4], epoch + 1, save=True, path=images_result_path)
+
+                images_result_path = os.path.join(self.result_dir, 'epoch%04d_dtm.png' % (epoch + 1))
+                self.show_result(output_batch_deterministic[:4], GT_batch[:4], epoch + 1, save=True,
+                                 path=images_result_path)
 
                 # validate
                 for itr in range(len(self.data_loader.idx_val)//self.input_size):
@@ -128,7 +167,9 @@ class ColorizationNet:
 
                 with open('loss.txt', 'a') as wf:
                     epoch_time = time.time() - start_time
-                    loss_info = '\nepoch: ' + '%7d' % (epoch + 1) + '  batch loss: %7.6f' % train_loss \
+                    loss_info = '\nepoch: ' + '%7d' % (epoch + 1) \
+                                + '  batch loss: %7.6f' % train_loss \
+                                + '  batch loss_total: %7.6f' % train_loss_condition \
                                 + '  val loss: %7.6f' % val_loss \
                                 + '  time elapsed: ' + '%7.6f' % epoch_time
                     wf.write(loss_info)
@@ -172,6 +213,7 @@ class ColorizationNet:
             result_img[:, idx_pair[0], idx_pair[1], :] = self.decoder.encoding2ab(prob[:, idx_pair[0], idx_pair[1], :])
         return result_img
 
+
     def one_shot_generation(self, sess, L, lb_ab, isTrain, prob_, input_batch, label_ab_batch):
         result_img = np.zeros([self.input_size, 28, 28, 2], dtype=np.uint8)
         prob = sess.run(prob_, feed_dict={L: input_batch, lb_ab: label_ab_batch, isTrain: False})
@@ -185,6 +227,7 @@ class ColorizationNet:
         for idx_pair in list_idx_order:
             result_img[:, idx_pair[0], idx_pair[1], :] = self.decoder.encoding2ab(prob[:, idx_pair[0], idx_pair[1], :])
         return result_img
+
 
 
     def show_result(self, img_gen, img_GT, num_epoch, show=False, save=False, path='result.png'):

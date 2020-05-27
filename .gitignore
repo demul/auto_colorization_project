@@ -4,6 +4,9 @@ colorful_image_colorization/ckpt/
 pixcolor/.idea/
 pixcolor/__pycache__/
 pixcolor/ckpt/
-
+pixelCNN_with_CIC/.idea/
+pixelCNN_with_CIC/__pycache__/
+pixelCNN_with_CIC/ckpt_PixelCNN/
+pixelCNN_with_CIC/ckpt_CIC/
 
 

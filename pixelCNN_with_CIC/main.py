@@ -1,5 +1,5 @@
 import data_preprocessor
-import train2
+import train
 import os
 
 ###########################################################
@@ -28,7 +28,7 @@ if not(os.path.exists('/coco/data_preprocessed_PixColor_class')
     DP.run()
 
 
-input_size = 4
+input_size = 8
 lr = 0.0003
 momentum = 0.9
 decaying_factor = 0.00005
@@ -36,9 +36,9 @@ adam_beta1 = 0.9
 adam_beta2 = 0.9
 result_dir = './results'
 
-max_epoch = 5
-loss_sampling_step = 1000
+max_epoch = 10
+loss_sampling_step = 500
 
-net = train2.ColorizationNet(input_size, lr=lr, decaying_factor=decaying_factor,
-                                adam_beta1=adam_beta1, adam_beta2=adam_beta2, result_dir=result_dir)
+net = train.ColorizationNet(input_size, lr=lr, decaying_factor=decaying_factor,
+                            adam_beta1=adam_beta1, adam_beta2=adam_beta2, result_dir=result_dir)
 net.run(max_epoch, loss_sampling_step)
