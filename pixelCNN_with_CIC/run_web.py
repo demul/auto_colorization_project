@@ -9,6 +9,7 @@ from io import BytesIO
 
 # Network's
 import tensorflow as tf
+import tensorflow.contrib.slim as slim
 from flask import Flask, render_template, request
 
 # Neural Net's
@@ -33,50 +34,79 @@ for i in range(len(list_filenames)):
         break
     if i == len(list_filenames)-1:
         print('There is not gamut. Run \'data_preprocessor.py\' before run this script...')
-decoder = util.Decoder(util.tablize_gamut(np.load(filename_gamut)))
+decoder = util.Decoder(util.tablize_gamut(np.load(filename_gamut)), sampling='probabilistic')
+decoder_greedy = util.Decoder(util.tablize_gamut(np.load(filename_gamut)), sampling='greedy')
 
 # declare arguments
 luminance_ = tf.placeholder(shape=[None, 224, 224, 1], dtype=tf.float32)
-chrominance_ = tf.placeholder(shape=[None, 28, 28, 2], dtype=tf.float32)
+chrominance_ = tf.placeholder(shape=[None, 56, 56, 2], dtype=tf.float32)
 isTrain = tf.constant(False)
 
 # make graph
-logit_ = model.colorizer(luminance_, chrominance_, isTrain=isTrain)
+logit_, logit_class_ = model.colorizer(luminance_, chrominance_, isTrain=isTrain)
 prob_ = tf.nn.softmax(logit_)
+prob_deterministic_ = tf.nn.softmax(logit_class_)
 
 # define session
 config = tf.ConfigProto()
 config.gpu_options.allow_growth = True
 sess = tf.Session(config=config)
 
+# get trainable variables
+trainable_variables = slim.get_variables_to_restore()
+vars_PixelCNN = []
+vars_CIC = []
+
+for v in trainable_variables :
+    if v.name.split('/')[0] == 'ColorizationNet':
+        vars_PixelCNN.append(v)
+    else:
+        vars_CIC.append(v)
+
 # define saver
-saver = tf.train.Saver(tf.global_variables())
-ckpt = tf.train.get_checkpoint_state('./ckpt')
+saver_CIC = tf.train.Saver(vars_CIC)
+saver = tf.train.Saver(vars_PixelCNN)
+
+# restore pre-trained CIC parameters
+ckpt_CIC = tf.train.get_checkpoint_state('./ckpt_CIC')
+saver_CIC.restore(sess, ckpt_CIC.model_checkpoint_path)
+
+# restore or initialize PixelCNN parameters
+ckpt = tf.train.get_checkpoint_state('./ckpt_PixelCNN')
 if ckpt and tf.train.checkpoint_exists(ckpt.model_checkpoint_path):
     saver.restore(sess, ckpt.model_checkpoint_path)
+else:
+    sess.run(tf.variables_initializer(vars_PixelCNN))
 
-def recursive_image_generation(sess__, L__, lb_ab__, isTrain__, prob___, input_batch__, label_ab_batch__):
+
+def recursive_image_generation(sess, L, lb_ab, prob_, input_batch):
     # recursive multimodal sampling
-    result_img = np.zeros([1, 28, 28, 2], dtype=np.uint8)
+    result_img = np.zeros([1, 56, 56, 2], dtype=np.uint8)
 
-    ## 'only a first pixel' is picked from label_ab_batch!
-    ## and rest pixels are sampled recursively
-    result_img[:, 0, 0, :] = label_ab_batch__[:, 0, 0, :] # first (0, 0) index of result
-    prob____ = sess__.run(prob___, feed_dict={L__: input_batch__, lb_ab__: label_ab_batch__, isTrain__: False})
-    result_img[:, 0, 1, :] = decoder.encoding2ab(prob____[:, 0, 1, :]) # second (0, 1) index of result
-
-    ## make index list [(0, 2), (0, 3).....(27, 26), (27, 27)]
+    ## make index list [(0, 2), (0, 3).....(55, 54), (55, 55)]
     list_idx_order = []
-    for ii in range(28):
-        for jj in range(28):
-            if jj == 0 or jj == 1:
-                continue
-            list_idx_order.append([ii, jj])
+    for i in range(56):
+        for j in range(56):
+            list_idx_order.append([i, j])
 
     for idx_pair in list_idx_order:
-        prob____ = sess.run(prob___, feed_dict={L__: input_batch__, lb_ab__: result_img, isTrain__: False})
-        result_img[:, idx_pair[0], idx_pair[1], :] = decoder.encoding2ab(
-            prob____[:, idx_pair[0], idx_pair[1], :])
+        prob = sess.run(prob_, feed_dict={L: input_batch, lb_ab: result_img.astype(np.float32)})
+        result_img[:, idx_pair[0], idx_pair[1], :] = decoder.encoding2ab(prob[:, idx_pair[0], idx_pair[1], :])
+    return result_img
+
+
+def one_shot_generation(sess, L, lb_ab, prob_, input_batch):
+    result_img = np.zeros([1, 56, 56, 2], dtype=np.uint8)
+    prob = sess.run(prob_, feed_dict={L: input_batch})
+
+    ## make index list [(0, 2), (0, 3).....(55, 54), (55, 55)]
+    list_idx_order = []
+    for i in range(56):
+        for j in range(56):
+            list_idx_order.append([i, j])
+
+    for idx_pair in list_idx_order:
+        result_img[:, idx_pair[0], idx_pair[1], :] = decoder_greedy.encoding2ab(prob[:, idx_pair[0], idx_pair[1], :])
     return result_img
 
 def resize_crop(img):
@@ -138,18 +168,28 @@ def uploaded_file():
         batch_input = np.expand_dims(img_gray, axis=0) # [1, 224, 224, 1]
 
         # inference(CORE)
-        output_batch_ab = recursive_image_generation(sess, luminance_, chrominance_, isTrain, prob_,
-                                                     batch_input, np.zeros([1, 28, 28, 2], dtype=np.float32))
+        output_batch_ab = recursive_image_generation(sess, luminance_, chrominance_, prob_, batch_input)
         output_batch = util.Lab2bgr(batch_input, output_batch_ab)
+
+        output_batch_ab_deterministic = one_shot_generation(sess, luminance_, chrominance_, prob_deterministic_, batch_input)
+        output_batch_deterministic = util.Lab2bgr(batch_input, output_batch_ab_deterministic)
+
         # [1, 224, 224, 3]
         img_output = np.squeeze(output_batch)
+        # [224, 224, 3]
+
+        # [1, 224, 224, 3]
+        img_output_deterministic = np.squeeze(output_batch_deterministic)
         # [224, 224, 3]
 
         img_origin = numpy2ascii(cv2.cvtColor(img_arr, cv2.COLOR_BGR2RGB))
         img_gray = numpy2ascii(np.tile(img_gray, (1, 1, 3)))
         img_processed = numpy2ascii(cv2.cvtColor(img_output, cv2.COLOR_BGR2RGB))
+        img_processed_deterministic = numpy2ascii(cv2.cvtColor(img_output_deterministic, cv2.COLOR_BGR2RGB))
 
-        return render_template('uploaded.html', image_processed=img_processed, image_gray=img_gray, image_origin=img_origin)
+        return render_template('uploaded.html', image_processed=img_processed,
+                               image_processed_deterministic=img_processed_deterministic,
+                               image_gray=img_gray, image_origin=img_origin)
 
 
 if __name__ == '__main__':

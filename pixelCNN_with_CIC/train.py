@@ -255,7 +255,6 @@ class ColorizationNet:
         return result_img
 
 
-
     def show_result(self, img_gen, img_GT, num_epoch, show=False, save=False, path='result.png'):
         # cvt BGR to RGB
         img_gen = self.bgr2rgb(img_gen)
