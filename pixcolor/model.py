@@ -141,11 +141,17 @@ class PixelCNN:
                                  conv_stride=(1, 1, 1, 1), conv_padding='SAME', conv_dilation=1, batch_norm=False)
             # [None, 28, 28, 64]
 
+            ###################################################################################
+            # concat condition with pixel recursively conditioned output
+            L1_horizontal_concated = tf.concat([condition_adapted, L1_horizontal], axis=3)
+            # [None, 28, 28, 128]
+            ###################################################################################
+
             ###### conv2
-            self.W2 = tf.get_variable('conv2', shape=[1, 1, 64, 1024],
+            self.W2 = tf.get_variable('conv2', shape=[1, 1, 128, 1024],
                                       dtype=tf.float32, initializer=tf.truncated_normal_initializer(0, 0.1))
             tf.add_to_collection('losses', tf.multiply(tf.nn.l2_loss(self.W2), self.decaying_factor))
-            self.L2 = ops.conv(L1_horizontal, self.W2, isTrain, conv_stride=(1, 1, 1, 1),
+            self.L2 = ops.conv(L1_horizontal_concated, self.W2, isTrain, conv_stride=(1, 1, 1, 1),
                                conv_dilation=1, batch_norm=False, activation=tf.nn.relu)
             # [None, 28, 28, 1024]
 

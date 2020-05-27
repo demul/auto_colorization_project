@@ -84,23 +84,23 @@ class ColorizationNet:
                 train_loss = 0
                 val_loss = 0
 
-                for itr in range(len(self.data_loader.idx_train)//self.input_size):
-                    # load training data
-                    input_batch, label_class_batch, label_ab_batch = self.data_loader.next_train(self.input_size)
-
-                    # run session
-                    _, loss = sess.run([train_op, loss_],
-                                               feed_dict={L: input_batch, lb_class: label_class_batch,
-                                                          lb_ab: label_ab_batch, isTrain: True, learning_rate: self.lr})
-                    train_loss += loss / (len(self.data_loader.idx_train)//self.input_size)
-
-                    # sample training loss
-                    if itr % loss_sampling_step == 0:
-                        progress_view = 'progress : ' \
-                                        + '%7.6f' % (itr / (len(self.data_loader.idx_train)//self.input_size) * 100)\
-                                        + '%  loss :' + '%7.6f' % loss
-                        print(progress_view)
-                        self.metric_list['losses'].append(loss)
+                # for itr in range(len(self.data_loader.idx_train)//self.input_size):
+                #     # load training data
+                #     input_batch, label_class_batch, label_ab_batch = self.data_loader.next_train(self.input_size)
+                #
+                #     # run session
+                #     _, loss = sess.run([train_op, loss_],
+                #                                feed_dict={L: input_batch, lb_class: label_class_batch,
+                #                                           lb_ab: label_ab_batch, isTrain: True, learning_rate: self.lr})
+                #     train_loss += loss / (len(self.data_loader.idx_train)//self.input_size)
+                #
+                #     # sample training loss
+                #     if itr % loss_sampling_step == 0:
+                #         progress_view = 'progress : ' \
+                #                         + '%7.6f' % (itr / (len(self.data_loader.idx_train)//self.input_size) * 100)\
+                #                         + '%  loss :' + '%7.6f' % loss
+                #         print(progress_view)
+                #         self.metric_list['losses'].append(loss)
 
 
                 # save validation image

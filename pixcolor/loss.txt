@@ -1,0 +1,6 @@
+
+epoch:       1  batch loss: 1605.048109  val loss: 1246.139128  time elapsed: 5847.780827
+epoch:       2  batch loss: 1217.932537  val loss: 1200.728596  time elapsed: 11674.181445
+epoch:       3  batch loss: 1179.129877  val loss: 1166.364678  time elapsed: 17479.176071
+epoch:       4  batch loss: 1157.271763  val loss: 2033.866625  time elapsed: 23262.558295
+epoch:       5  batch loss: 1144.100543  val loss: 1149.147260  time elapsed: 29033.874693

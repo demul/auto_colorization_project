@@ -135,14 +135,15 @@ def uploaded_file():
         img_gray = np.expand_dims(np.mean(img_arr, axis=2), axis=2).astype(np.uint8)
 
         # expand both to batch
-        batch_input = np.expand_dims(img_gray, axis=0) # [1, 56, 56, 1]
+        batch_input = np.expand_dims(img_gray, axis=0) # [1, 224, 224, 1]
 
         # inference(CORE)
         output_batch_ab = recursive_image_generation(sess, luminance_, chrominance_, isTrain, prob_,
-                                                     batch_input, np.zeros([1, 28, 28, 1], dtype=np.float32))
-        batch_output = decoder.encoding2bgr(batch_input, prob)
-        img_output = np.squeeze(batch_output)
-        img_output = cv2.resize(img_output, (224, 244), interpolation=cv2.INTER_LINEAR)
+                                                     batch_input, np.zeros([1, 28, 28, 2], dtype=np.float32))
+        output_batch = util.Lab2bgr(batch_input, output_batch_ab)
+        # [1, 224, 224, 3]
+        img_output = np.squeeze(output_batch)
+        # [224, 224, 3]
 
         img_origin = numpy2ascii(cv2.cvtColor(img_arr, cv2.COLOR_BGR2RGB))
         img_gray = numpy2ascii(np.tile(img_gray, (1, 1, 3)))
