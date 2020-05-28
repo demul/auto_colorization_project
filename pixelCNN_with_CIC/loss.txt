@@ -1,0 +1,11 @@
+
+epoch:       1  batch loss: 4565.615081  batch loss_total: 7978.510991  val loss: 4984.640639  time elapsed: 2193.455614
+epoch:       2  batch loss: 3886.874834  batch loss_total: 7979.746199  val loss: 4280.438953  time elapsed: 4309.041018
+epoch:       3  batch loss: 3697.366090  batch loss_total: 7977.491765  val loss: 3816.953141  time elapsed: 6406.634280
+epoch:       4  batch loss: 3589.070097  batch loss_total: 7978.784652  val loss: 4003.720066  time elapsed: 8505.104243
+epoch:       5  batch loss: 3522.797972  batch loss_total: 7977.791886  val loss: 3869.702398  time elapsed: 10606.067923
+epoch:       6  batch loss: 3477.234080  batch loss_total: 7975.353663  val loss: 3561.767643  time elapsed: 12709.627180
+epoch:       7  batch loss: 3434.587283  batch loss_total: 7977.758006  val loss: 3519.508461  time elapsed: 14807.150634
+epoch:       8  batch loss: 3404.708135  batch loss_total: 7977.117448  val loss: 3737.096232  time elapsed: 16906.805562
+epoch:       9  batch loss: 3380.443876  batch loss_total: 7981.817374  val loss: 3617.659936  time elapsed: 19007.755346
+epoch:      10  batch loss: 3362.413901  batch loss_total: 7976.049104  val loss: 4088.597127  time elapsed: 21109.474593

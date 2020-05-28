@@ -102,6 +102,8 @@ class Decoder:
         self.temperature = temperature
         if sampling == 'probabilistic':
             self.decode = self.probabilistic_decode
+        elif sampling == 'argmax':
+            self.decode = self.argmax_decode
         else:
             self.decode = self.annealed_mean_decode
 
@@ -125,6 +127,17 @@ class Decoder:
             annealed_mean += ab * prob
 
         return annealed_mean.astype(np.uint8)
+
+
+    def argmax_decode(self, encoding):
+        # encoding : [262,]
+        # class_sampled = np.random.choice(262, 1, p=self.softmax_temperature_scaled(encoding))[0]
+        # class_sampled = np.random.choice(262, 1, p=encoding)[0]
+        class_sampled = np.argmax(encoding)
+        ab = self.table_gamut_inverse[class_sampled + 1] * 10
+
+        return ab.astype(np.uint8)
+
 
     def probabilistic_decode(self, encoding):
         # encoding : [262,]

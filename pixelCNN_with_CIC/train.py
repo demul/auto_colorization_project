@@ -123,48 +123,48 @@ class ColorizationNet:
                 train_loss_condition = 0
                 val_loss = 0
 
-                # for itr in range(len(self.data_loader.idx_train) // self.input_size):
-                #     # load training data
-                #     input_batch, label_class_batch, label_ab_batch = self.data_loader.next_train(self.input_size)
-                #
-                #     # run session
-                #     _, loss, loss_CIC = sess.run([train_op, loss_, loss_condition_],
-                #                                feed_dict={L: input_batch, lb_class: label_class_batch,
-                #                                           lb_ab: label_ab_batch, isTrain: True, learning_rate: self.lr})
-                #     train_loss += loss / (len(self.data_loader.idx_train)//self.input_size)
-                #     train_loss_condition += loss_CIC / (len(self.data_loader.idx_train) // self.input_size)
-                #
-                #     # sample training loss
-                #     if itr % loss_sampling_step == 0:
-                #         progress_view = 'progress : ' \
-                #                         + '%7.6f' % (itr / (len(self.data_loader.idx_train)//self.input_size) * 100)\
-                #                         + '%  loss :' + '%7.6f' % loss\
-                #                         + '%  loss_CIC :' + '%7.6f' % loss_CIC
-                #         print(progress_view)
-                #         self.metric_list['losses'].append(loss)
-                #
-                #         #################################################################
-                #         # save validation image
-                #         input_batch, label_class_batch, label_ab_batch, GT_batch = self.data_loader.next_val(
-                #             self.input_size)
-                #         # put validation cursor back to 0
-                #         self.data_loader.cursor_val = 0
-                #
-                #         # get output ab
-                #         output_batch_ab = self.recursive_image_generation(sess, L, lb_ab, isTrain, prob_, input_batch,
-                #                                                           label_ab_batch)
-                #         output_batch_ab_deterministic = self.one_shot_generation(sess, L, lb_ab, isTrain, prob_deterministic, input_batch,
-                #                                                           label_ab_batch)
-                #         # concat ab with L and convert to BGR
-                #         output_batch = util.Lab2bgr(input_batch, output_batch_ab)
-                #         output_batch_deterministic = util.Lab2bgr(input_batch, output_batch_ab_deterministic)
-                #
-                #         images_result_path = os.path.join(self.result_dir, 'itr%06d.png' % (itr + 1))
-                #         self.show_result(output_batch[:4], GT_batch[:4], epoch + 1, save=True, path=images_result_path)
-                #
-                #         images_result_path = os.path.join(self.result_dir, 'itr%06d_dtm.png' % (itr + 1))
-                #         self.show_result(output_batch_deterministic[:4], GT_batch[:4], epoch + 1, save=True, path=images_result_path)
-                #         #################################################################
+                for itr in range(len(self.data_loader.idx_train) // self.input_size):
+                    # load training data
+                    input_batch, label_class_batch, label_ab_batch = self.data_loader.next_train(self.input_size)
+
+                    # run session
+                    _, loss, loss_CIC = sess.run([train_op, loss_, loss_condition_],
+                                               feed_dict={L: input_batch, lb_class: label_class_batch,
+                                                          lb_ab: label_ab_batch, isTrain: True, learning_rate: self.lr})
+                    train_loss += loss / (len(self.data_loader.idx_train)//self.input_size)
+                    train_loss_condition += loss_CIC / (len(self.data_loader.idx_train) // self.input_size)
+
+                    # sample training loss
+                    if itr % loss_sampling_step == 0:
+                        progress_view = 'progress : ' \
+                                        + '%7.6f' % (itr / (len(self.data_loader.idx_train)//self.input_size) * 100)\
+                                        + '%  loss :' + '%7.6f' % loss\
+                                        + '%  loss_CIC :' + '%7.6f' % loss_CIC
+                        print(progress_view)
+                        self.metric_list['losses'].append(loss)
+
+                        # #################################################################
+                        # # save validation image
+                        # input_batch, label_class_batch, label_ab_batch, GT_batch = self.data_loader.next_val(
+                        #     self.input_size)
+                        # # put validation cursor back to 0
+                        # self.data_loader.cursor_val = 0
+                        #
+                        # # get output ab
+                        # output_batch_ab = self.recursive_image_generation(sess, L, lb_ab, isTrain, prob_, input_batch,
+                        #                                                   label_ab_batch)
+                        # output_batch_ab_deterministic = self.one_shot_generation(sess, L, lb_ab, isTrain, prob_deterministic, input_batch,
+                        #                                                   label_ab_batch)
+                        # # concat ab with L and convert to BGR
+                        # output_batch = util.Lab2bgr(input_batch, output_batch_ab)
+                        # output_batch_deterministic = util.Lab2bgr(input_batch, output_batch_ab_deterministic)
+                        #
+                        # images_result_path = os.path.join(self.result_dir, 'itr%06d.png' % (itr + 1))
+                        # self.show_result(output_batch[:4], GT_batch[:4], epoch + 1, save=True, path=images_result_path)
+                        #
+                        # images_result_path = os.path.join(self.result_dir, 'itr%06d_dtm.png' % (itr + 1))
+                        # self.show_result(output_batch_deterministic[:4], GT_batch[:4], epoch + 1, save=True, path=images_result_path)
+                        # #################################################################
 
 
                 # save validation image
@@ -213,10 +213,16 @@ class ColorizationNet:
                     model_dir = './ckpt_PixelCNN' + '_epoch' + str(
                         epoch + 1) + '/model.ckpt'
                     saver.save(sess, model_dir)
+                    model_dir = './ckpt_CIC' + '_epoch' + str(
+                        epoch + 1) + '/model.ckpt'
+                    saver_CIC.save(sess, model_dir)
 
                 # save model
                 model_dir = './ckpt_PixelCNN' + '/model.ckpt'
                 saver.save(sess, model_dir)
+                model_dir = './ckpt_CIC' + '_epoch' + str(
+                    epoch + 1) + '/model.ckpt'
+                saver_CIC.save(sess, model_dir)
 
             # close session
             sess.close()
