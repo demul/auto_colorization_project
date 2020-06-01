@@ -27,6 +27,24 @@ class PixelCNN:
 
 
         with tf.variable_scope('ColorizationNet'):
+            if isTrain is not False:
+                ####################################################################################
+                # add random chrominance noise for badly-predicted-pixel-invariance
+                # 42 <= a <= 226
+                # 20 <= b <= 223
+                value_noise_a = tf.random.uniform([self.input_size, 56, 56, 1], minval=42, maxval=226, dtype=tf.float32)//10 * 10
+                value_noise_b = tf.random.uniform([self.input_size, 56, 56, 1], minval=20, maxval=223, dtype=tf.float32)//10 * 10
+                value_noise_ab = tf.concat([value_noise_a, value_noise_b], axis=3)
+                # value_noise_ab : [None, 56, 56, 2]
+
+                spatial_noise = tf.tile(
+                    tf.random.uniform([self.input_size, 56, 56, 1], minval=0, maxval=10, dtype=tf.float32) < 5,
+                    [1, 1, 1, 2])
+                # value_noise_ab : [None, 56, 56, 2] (boolean)
+
+                chrominance = tf.where(spatial_noise, chrominance, value_noise_ab)
+                ####################################################################################
+
             ###### conv1
             self.W1 = tf.get_variable('conv1', shape=[7, 7, 2, 64],
                                       dtype=tf.float32, initializer=tf.truncated_normal_initializer(0, 0.1))

@@ -120,7 +120,7 @@ class ColorizationNet:
             start_time = time.time()
             for epoch in range(max_epoch):
                 train_loss = 0
-                train_loss_condition = 0
+                train_loss_deterministic = 0
                 val_loss = 0
 
                 for itr in range(len(self.data_loader.idx_train) // self.input_size):
@@ -132,7 +132,7 @@ class ColorizationNet:
                                                feed_dict={L: input_batch, lb_class: label_class_batch,
                                                           lb_ab: label_ab_batch, isTrain: True, learning_rate: self.lr})
                     train_loss += loss / (len(self.data_loader.idx_train)//self.input_size)
-                    train_loss_condition += loss_CIC / (len(self.data_loader.idx_train) // self.input_size)
+                    train_loss_deterministic += loss_CIC / (len(self.data_loader.idx_train) // self.input_size)
 
                     # sample training loss
                     if itr % loss_sampling_step == 0:
@@ -203,13 +203,13 @@ class ColorizationNet:
                     epoch_time = time.time() - start_time
                     loss_info = '\nepoch: ' + '%7d' % (epoch + 1) \
                                 + '  batch loss: %7.6f' % train_loss \
-                                + '  batch loss_total: %7.6f' % train_loss_condition \
+                                + '  batch loss_deterministic: %7.6f' % train_loss_deterministic \
                                 + '  val loss: %7.6f' % val_loss \
                                 + '  time elapsed: ' + '%7.6f' % epoch_time
                     wf.write(loss_info)
 
                 # save model by 10 epoch in different directory
-                if epoch % 2 == 0 and epoch != 0:
+                if epoch % 5 == 0 and epoch != 0:
                     model_dir = './ckpt_PixelCNN' + '_epoch' + str(
                         epoch + 1) + '/model.ckpt'
                     saver.save(sess, model_dir)
@@ -220,8 +220,7 @@ class ColorizationNet:
                 # save model
                 model_dir = './ckpt_PixelCNN' + '/model.ckpt'
                 saver.save(sess, model_dir)
-                model_dir = './ckpt_CIC' + '_epoch' + str(
-                    epoch + 1) + '/model.ckpt'
+                model_dir = './ckpt_CIC' + '/model.ckpt'
                 saver_CIC.save(sess, model_dir)
 
             # close session
@@ -301,9 +300,9 @@ class ColorizationNet:
 
 
     def save_loss_plot(self):
-        x = range(2, self.loss_sampling_step * len(self.metric_list['losses']) + 1, self.loss_sampling_step)
+        x = range(1, self.loss_sampling_step * len(self.metric_list['losses']) + 1, self.loss_sampling_step)
 
-        y1 = self.metric_list['losses'][1:]
+        y1 = self.metric_list['losses']
 
         plt.plot(x, y1, label='loss')
 

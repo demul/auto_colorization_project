@@ -29,14 +29,14 @@ if not(os.path.exists('/coco/data_preprocessed_PixColor_class')
 
 
 input_size = 8
-lr = 0.0003
+lr = 0.00003
 momentum = 0.9
 decaying_factor = 0.00005
 adam_beta1 = 0.9
 adam_beta2 = 0.9
 result_dir = './results'
 
-max_epoch = 10
+max_epoch = 200
 loss_sampling_step = 500
 
 net = train.ColorizationNet(input_size, lr=lr, decaying_factor=decaying_factor,
